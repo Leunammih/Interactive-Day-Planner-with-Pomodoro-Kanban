@@ -1,5 +1,5 @@
 """Removes personal starter content from the planner page before it goes into this public repo.
-Run: python3 src/scrub.py src/planner-artifact.html  (build.sh runs it automatically)."""
+Run: python3 src/scrub.py src/planner.html  (build.sh runs it automatically)."""
 import re, sys
 p = sys.argv[1]; s = open(p, encoding="utf8").read()
 R = [

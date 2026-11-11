@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Turns the planner page (planner-artifact.html) into the self-hosted app in ../site
+# Turns the planner page (planner.html) into the self-hosted app in ../site
 set -euo pipefail
 cd "$(dirname "$0")"; OUT=../docs; mkdir -p "$OUT"
-python3 scrub.py planner-artifact.html
+python3 scrub.py planner.html
 python3 - <<'PY'
-src=open("planner-artifact.html",encoding="utf8").read()
+src=open("planner.html",encoding="utf8").read()
 head='''<link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0d7377">
 <meta name="apple-mobile-web-app-capable" content="yes">
