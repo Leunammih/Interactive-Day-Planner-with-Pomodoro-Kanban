@@ -185,6 +185,7 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     const pill = document.getElementById("pill");
+    document.addEventListener("click", e => { if (!cfg().token && e.target.closest && e.target.closest("#syncBtn")) { e.preventDefault(); e.stopImmediatePropagation(); setupSheet(); } }, true);
     if (pill) { pill.style.cursor = "pointer"; pill.setAttribute("role", "button"); pill.title = "Sync settings"; pill.addEventListener("click", setupSheet); }
     if (!cfg().token && !ls.get("dsSync.hinted", false)) { ls.set("dsSync.hinted", true); setTimeout(() => alertBox("Tip: tap “Saved on this device” at the top to set up sync with your other devices."), 1500); }
   });

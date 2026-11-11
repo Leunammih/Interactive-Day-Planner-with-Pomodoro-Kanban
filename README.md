@@ -23,7 +23,7 @@ Live app: https://leunammih.github.io/Interactive-Day-Planner-with-Pomodoro-Kanb
 
 ## Code
 
-- `src/planner-artifact.html`: the planner page.
+- `src/planner.html`: the planner page.
 - `src/shim.js`: the offline storage and sync layer (replaces the claude.ai runtime).
 - `src/sw.js`, `src/manifest.webmanifest`, icons: the installable-app parts.
 - `bash src/build.sh` builds the site into `docs/`, which GitHub Pages serves.
