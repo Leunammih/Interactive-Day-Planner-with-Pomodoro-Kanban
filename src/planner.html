@@ -1427,7 +1427,7 @@ function exportPanel(){
       <button class="btn ghost" data-act="import">Restore from backup</button>
     </div>
     ${S.exportText != null ? `<textarea id="exportBox" readonly>${esc(S.exportText)}</textarea><div class="btnrow"><button class="btn" data-act="copyExport">Copy</button><button class="btn ghost" data-act="closeExport">Close</button></div>` : ""}
-    <p class="hint">${S.mode === "cloud" ? "Your days are saved on this device and synced to a private Gist in your GitHub account, so they show up on your phone and your Mac." : "Your days are saved in this browser. Export a backup now and then."}</p>
+    <p class="hint">${S.mode === "cloud" ? "Your days are saved on this device and synced to a private repo in your GitHub account, so they show up on your phone and your Mac." : "Your days are saved in this browser. Export a backup now and then."}</p>
   </section>`;
 }
 

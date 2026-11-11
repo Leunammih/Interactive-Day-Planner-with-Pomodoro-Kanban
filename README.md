@@ -8,13 +8,14 @@ Live app: https://leunammih.github.io/Interactive-Day-Planner-with-Pomodoro-Kanb
 
 - **Offline:** a service worker keeps the app on the device. After the first visit it opens with no internet and shows the last saved state.
 - **Saving:** every change is saved on the device first (localStorage).
-- **Sync:** when online, changes are uploaded to a *private* GitHub Gist in your account (one `ds-*.json` file per day, plus backlog and settings), at most every few seconds. Other devices pull it every minute and when the app comes to the front. The newer edit of a day wins, and the older fuller version is kept as a restorable backup. The Gist's revision history is a further backup.
+- **Sync:** when online, changes are uploaded to a *private* GitHub repo you choose (`data/<doc>.json`: one file per day, plus `backlog.json` and `settings.json`), batched every few seconds. Other devices pull every minute and when the app comes to the front. The newer edit wins, and the older fuller version is kept as a restorable backup. The repo's history is a further backup, and Claude can read and update the data there (for example, to add backlog items).
 - **Your data is never in this repo.** The repo only holds the app.
 
 ## Set up sync (once per device)
 
-1. On github.com: Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token. Under **Account permissions**, set **Gists** to **Read and write**. No repository access is needed.
-2. In the app, tap the status pill at the top ("Saved on this device") and paste the token. The first device creates the private Gist; the others find it automatically.
+1. Create a **private** repo for the data (for example `day-planner-data`).
+2. On github.com: Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token. Repository access: **Only select repositories** → the data repo. Repository permissions: **Contents: Read and write**.
+3. In the app, tap **⚙︎** at the top, enter `owner/day-planner-data` and the token, then **Save and sync**.
 
 ## Install
 
