@@ -79,7 +79,16 @@ ol.tl{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px}
 .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--muted)}
 .chip{--h:180;display:inline-block;padding:2px 8px;border-radius:999px;font-size:12.5px;font-weight:600;background:hsl(var(--h) 40% var(--chip-l));color:hsl(var(--h) 55% var(--chip-fg-l));max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tag{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:6px}
-.tag.came{background:var(--came-soft);color:var(--came)} .tag.done{background:var(--accent-soft);color:var(--accent)} .tag.skip{background:var(--sunk);color:var(--muted)}
+.tag.came{background:var(--came-soft);color:var(--came)} .tag.done{background:var(--accent-soft);color:var(--accent)} .tag.skip{background:var(--sunk);color:var(--muted)} .tag.act{background:#fdecc8;color:#8a5a00}
+.seg.st4{grid-template-columns:repeat(4,1fr)}
+details.sfold{display:block;min-width:0}
+details.sfold>summary{list-style:none;cursor:pointer;display:flex;gap:8px;align-items:center;font-size:12px;font-weight:650;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:4px 0;min-height:36px}
+details.sfold>summary::-webkit-details-marker{display:none}
+details.sfold>summary::before{content:"▸";font-size:20px;line-height:1;width:34px;height:34px;display:inline-grid;place-items:center;border:1px solid var(--line);border-radius:9px;flex:none;color:var(--text);background:var(--bg)}
+details.sfold[open]>summary::before{content:"▾"}
+details.sfold>summary .pv{text-transform:none;letter-spacing:0;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+details.sfold>.fbody{display:grid;gap:12px;padding:6px 0 4px}
+details.sfold>.fbody>.field>span:first-child{display:none}
 .content{font-size:15px;overflow-wrap:anywhere}
 .was{font-size:13px;color:var(--muted);text-decoration:line-through;overflow-wrap:anywhere}
 .cmt{font-size:13.5px;color:var(--muted);font-style:italic;overflow-wrap:anywhere}
@@ -947,7 +956,7 @@ function headHTML(r, ctx){
     return `<div class="meta">${typeChips(r)}<span class="num">${fmtD(r.planDur)}</span>${r.fixed ? `<span class="tag skip">fixed time</span>` : ""}${ov > 0 ? `<span class="tag warn">overlaps next by ${ov} min</span>` : ""}</div>${body}${r.lastNote ? `<div class="last">Last time: ${esc(r.lastNote)}</div>` : ""}`;
   }
   const a = ctx[r.id];
-  const tag = r.inserted ? `<span class="tag came">Came up</span>` : r.status === "done" ? `<span class="tag done">Done</span>` : r.status === "skipped" ? `<span class="tag skip">Skipped</span>` : "";
+  const tag = r.inserted ? `<span class="tag came">Came up</span>` : r.status === "done" ? `<span class="tag done">Done</span>` : r.status === "active" ? `<span class="tag act">In progress</span>` : r.status === "skipped" ? `<span class="tag skip">Skipped</span>` : "";
   const durTxt = r.inserted ? fmtD(a.dur) : (r.actualDur != null && r.actualDur !== r.planDur ? `${fmtD(r.actualDur)} <span style="opacity:.7">/ ${fmtD(r.planDur)} planned</span>` : fmtD(r.planDur));
   const rates = (r.energy || r.focus) ? `<div class="rates">${r.energy ? `<span>Energy ${minidots(r.energy)}</span>` : ""}${r.focus ? `<span>Focus ${minidots(r.focus)}</span>` : ""}</div>` : "";
   let body;
@@ -968,6 +977,12 @@ function longDur(field, val, r, start){ const st = start ?? r.planStart ?? 540; 
 function longIdeas(r, field, k){ const key = k === "restore" ? "restore" : "interrupt"; const list = SET()[key] || []; const cur = splitIdeas(r[field]); const extra = cur.filter(x => !list.includes(x));
   return `<div class="field">${fhead(k === "restore" ? "How you restored · tap all that apply" : "What interrupted the day · tap all that apply", key)}<div class="ideas">${[...list, ...extra].map(x => { const b = `<button type="button" data-act="pickIdea" data-f="${field}" data-id="${r.id}" data-v="${esc(x)}" aria-pressed="${cur.includes(x)}">${esc(x)}</button>`; return list.includes(x) ? libChip(key, x, b) : b; }).join("")}</div>${addInline(key, r, field, "New option, saved to the list")}</div>`; }
 const ek = r => r.actualKind || r.kind;
+/* Collapsible sections in the Actual editor; open/closed is remembered per section on this device */
+const FOLD_DEF = {turned:false, time:false, tasks:true};
+let FOLD = {}; try { FOLD = JSON.parse(localStorage.getItem("dayStructure.folds") || "{}") || {}; } catch(e){ FOLD = {}; }
+const foldOpen = k => (k in FOLD ? FOLD[k] : FOLD_DEF[k]);
+function fold(k, label, pv, inner){ return `<details class="sfold" data-fold="${k}" ${foldOpen(k) ? "open" : ""}><summary>${label} <span class="pv">${pv || ""}</span></summary><div class="fbody">${inner}</div></details>`; }
+document.addEventListener("toggle", e => { const el = e.target; if (el.dataset && el.dataset.fold) { FOLD[el.dataset.fold] = el.open; try { localStorage.setItem("dayStructure.folds", JSON.stringify(FOLD)); } catch(err){} } }, true);
 function kindRow(r, act){
   act = act || "kind"; const cur = act === "akind" ? ek(r) : r.kind;
   const label = act === "akind" ? "What it turned into" : "Kind of block";
@@ -1061,7 +1076,7 @@ function tasksActualEditor(r, d){
       </div>
       <div class="tdur"><div><span>Estimate</span>${wbtn({kind:"dur", f:"task", id:r.id, t:t.id, k:"est", val:t.est, empty:"–", title:"Estimated time", max:60, cls:"sm"})}</div><div><span>Took</span>${wbtn({kind:"dur", f:"task", id:r.id, t:t.id, k:"actual", val:t.actual, empty:"–", title:"Time it took", max:90, cls:"sm"})}</div></div>
       <input type="text" class="tnote" autocomplete="off" id="tc-${t.id}" data-f="task" data-k="note" data-t="${t.id}" data-id="${r.id}" value="${esc(t.note||"")}" placeholder="Notes on this task"></div>`;
-  return `${pomoStartHTML(r)}<div class="field"><span>Tasks for this session</span><div class="taskbox">${tasks.map(taskHTML).join("") || `<p class="hint">No tasks yet. Add what you plan to do in these 25 minutes.</p>`}
+  return `${pomoStartHTML(r)}<details class="sfold" data-fold="tasks" ${foldOpen("tasks") ? "open" : ""}><summary>Tasks for this session <span class="pv">${tasks.length ? `${nDone}/${tasks.length} done${est ? " · est. " + est + " min" : ""}` : "none yet"}</span></summary><div class="fbody"><div class="field"><div class="taskbox">${tasks.map(taskHTML).join("") || `<p class="hint">No tasks yet. Add what you plan to do in these 25 minutes.</p>`}
     ${r.extras.map(x => `<div class="task extra-t">
       <div class="row"><input type="text" autocomplete="off" id="xn-${x.id}" data-f="extra" data-k="name" data-t="${x.id}" data-id="${r.id}" value="${esc(x.name)}" placeholder="Extra task I ended up doing">${wbtn({kind:"dur", f:"extra", id:r.id, t:x.id, k:"actual", val:x.actual, empty:"–", title:"Time it took", max:90, cls:"sm"})}<button type="button" class="x" data-act="rmExtra" data-t="${x.id}" data-id="${r.id}" aria-label="Remove">×</button></div>
       <input type="text" autocomplete="off" id="xw-${x.id}" data-f="extra" data-k="why" data-t="${x.id}" data-id="${r.id}" value="${esc(x.why)}" placeholder="Why did it come in?"></div>`).join("")}
@@ -1069,7 +1084,7 @@ function tasksActualEditor(r, d){
     ${r.overtime ? `<p class="hint" style="color:var(--came)">Worked ${r.overtime} min past the 25 minutes.</p>` : ""}
     ${tasks.length ? `<div class="psum"><span><b>${nDone}/${tasks.length}</b> done</span><span>Estimated <b>${est} min</b></span><span>Took <b>${act} min</b></span>${est && act ? `<span>${act > est ? "+" : ""}${act - est} min vs estimate</span>` : ""}</div>` : ""}</div>
     ${smallChips(r, d)}
-    <div class="btnrow"><button class="btn" data-act="addTask" data-id="${r.id}">+ Task for this session</button><button class="btn came" data-act="addExtra" data-id="${r.id}">+ Extra task I ended up doing</button></div>
+    <div class="btnrow"><button class="btn" data-act="addTask" data-id="${r.id}">+ Task for this session</button><button class="btn came" data-act="addExtra" data-id="${r.id}">+ Extra task I ended up doing</button></div></div></details>
     <div class="field"><span>Interruptions</span><div class="tally"><button type="button" data-act="intr" data-v="-1" data-id="${r.id}" aria-label="One less">−</button><b>${r.interrupts||0}</b><button type="button" data-act="intr" data-v="1" data-id="${r.id}" aria-label="One more">+</button><span class="hint">Tap + each time something pulls you out</span></div></div>`;
 }
 
@@ -1110,18 +1125,18 @@ function actualEditor(r, d, ctx){
       ${r.kind === "break" ? ideasHTML(r, "content", a.dur) : ""}
       ${LONGK(r.kind) ? `<div class="field"><span>Length</span>${longDur("actualDur", r.actualDur, r, a.start)}</div>` + longIdeas(r, "content", r.kind) : ""}
       ${r.kind === "pomodoro" ? "" : `<label class="field"><span>What came up</span><textarea id="ac-${r.id}" data-f="content" data-id="${r.id}" rows="2" placeholder="What happened">${esc(r.content)}</textarea></label>`}`
-    : `<div class="seg" role="group" aria-label="Status">
-        ${[["todo","Not yet"],["done","Done"],["skipped","Skipped"]].map(([k,l]) => `<button type="button" data-act="status" data-v="${k}" data-id="${r.id}" aria-pressed="${st===k}">${l}</button>`).join("")}
+    : `<div class="seg st4" role="group" aria-label="Status">
+        ${[["todo","Not yet"],["active","In progress"],["done","Done"],["skipped","Skipped"]].map(([k,l]) => `<button type="button" data-act="status" data-v="${k}" data-id="${r.id}" aria-pressed="${st===k}">${l}</button>`).join("")}
       </div>
       <p class="hint">Planned: ${fmtT(r.planStart)} · ${fmtD(r.planDur)}${r.kind === "pomodoro" ? (r.category ? " · " + esc(r.category) : "") : " · " + esc(r.content || "no content")}</p>
-      ${kindRow(r, "akind")}`}
+      ${fold("turned", "What it turned into", r.actualKind ? esc(r.actualType || KIND_TYPE[r.actualKind] || "Block") : "as planned", kindRow(r, "akind"))}`}
     ${isBreak ? breakStartHTML(r) : ""}
     ${isBreak && !r.inserted ? `<div class="field"><span>How long the break was</span>${quickDur("actualDur", r.actualDur ?? r.planDur, r, choices)}</div>` : ""}
-    <div class="grid2">
+    ${fold("time", "Actual time", `${fmtD(a.dur)} · ${fmtT(a.start)}–${fmtT(a.end)}`, `<div class="grid2">
       <div class="field"><span>Actual time</span>${durRow("ad-" + r.id, "actualDur", r, r.actualDur, r.inserted ? null : "as planned (" + (r.planDur ?? 0) + ")")}</div>
       <div class="field"><span>Started at</span>${timeRow("actualStart", r, r.actualStart ?? a.start, "Started at")}</div>
     </div>
-    <p class="hint">${r.actualStart != null || r.actGap ? `${r.actGap ? `${r.actGap} min pause before this block.` : "Start set by hand."} <button class="btn ghost" style="min-height:0;padding:2px 6px" data-act="clearStart" data-id="${r.id}">Use calculated time</button>` : `Start follows the blocks before. Change it and this block's time shrinks or grows so it still ends at ${fmtT(a.end)}; change the duration and everything after moves.`}</p>
+    <p class="hint">${r.actualStart != null || r.actGap ? `${r.actGap ? `${r.actGap} min pause before this block.` : "Start set by hand."} <button class="btn ghost" style="min-height:0;padding:2px 6px" data-act="clearStart" data-id="${r.id}">Use calculated time</button>` : `Start follows the blocks before. Change it and this block's time shrinks or grows so it still ends at ${fmtT(a.end)}; change the duration and everything after moves.`}</p>`)}
     ${taskTimerHTML(r, d)}
     ${K === "pomodoro" && !r.actualKind ? tasksActualEditor(r, d) : ""}
     ${K === "comms" ? commsActual(r) : K === "routine" ? routinePicker(r, "actual") : ""}
@@ -1331,7 +1346,7 @@ function renderReview(d){
     const a = ctx[r.id];
     if (r.inserted) return `<li class="came"><div><span class="k">Plan</span><span class="hint">Not planned</span></div><div><span class="k">Came up · ${fmtT(a.start)} · ${fmtD(a.dur)}</span>${typeChips(r)} ${r.kind === "pomodoro" ? tasksActualHTML(r, d) : esc(r.content)}${r.comments ? `<div class="cmt">${esc(r.comments)}</div>` : ""}</div></li>`;
     const actTxt = r.status === "skipped" ? `<span class="hint">Skipped</span>` : `${r.actualKind ? chip(r.actualType || KIND_TYPE[r.actualKind]) + " " + esc([...(r.doneItems||[]), r.revised].filter(Boolean).join(" · ")) : r.kind === "pomodoro" ? tasksActualHTML(r, d) : esc(r.revised || r.content)}${r.comments ? `<div class="cmt">${esc(r.comments)}</div>` : ""}`;
-    return `<li><div><span class="k">Plan · ${fmtT(r.planStart)} · ${fmtD(r.planDur)}</span>${typeChips(r)} ${planTxt(r)}</div><div><span class="k">Actual · ${r.status === "skipped" ? "–" : fmtT(a.start) + " · " + fmtD(a.dur)}${r.status === "todo" ? " · not logged" : ""}</span>${actTxt}</div></li>`;
+    return `<li><div><span class="k">Plan · ${fmtT(r.planStart)} · ${fmtD(r.planDur)}</span>${typeChips(r)} ${planTxt(r)}</div><div><span class="k">Actual · ${r.status === "skipped" ? "–" : fmtT(a.start) + " · " + fmtD(a.dur)}${r.status === "todo" ? " · not logged" : r.status === "active" ? " · in progress" : ""}</span>${actTxt}</div></li>`;
   }).join("");
   return `<div class="stats">
       <div class="stat"><span>Planned</span><b>${fmtD(planned)}</b><small>${ps.length} blocks</small></div>
@@ -1795,13 +1810,13 @@ function startBreak(){
   const i = d && pr ? d.rows.indexOf(pr) : -1, nb = i >= 0 ? d.rows[i + 1] : null; const isB = nb && ["break", "meal"].includes(nb.actualKind || nb.kind);
   const mins = isB ? (nb.actualDur ?? nb.planDur ?? 5) : 5;
   const over = t.doneAt ? Math.floor((Date.now() - t.doneAt) / 60000) : 0;
-  if (pr) { pr.overtime = over; if (pr.actualDur == null && over >= 3) pr.actualDur = snap5(pr.planDur + over); if (!pr.inserted && pr.status === "todo") pr.status = "done"; touch(t.date); }
+  if (pr) { pr.overtime = over; if (pr.actualDur == null && over >= 3) pr.actualDur = snap5(pr.planDur + over); if (!pr.inserted && (pr.status === "todo" || pr.status === "active")) pr.status = "done"; touch(t.date); }
   alarmStop(); audio();
   T = {mode:"break", rowId: isB ? nb.id : t.rowId, pomoId: t.rowId, date: t.date, label: (isB ? (nb.type || "Break") : "Break") + " · " + mins + " min", ms: mins * 60000, endAt: Date.now() + mins * 60000, left: mins * 60000, running: true, done: false, sound: t.sound};
   saveT(); wakeOn(); runTimer(); render(); toast(`${mins}-minute break${over ? ` (${over} min over noted)` : ""}`);
 }
 function timerStart(r){
-  audio();
+  audio(); if (r && !r.inserted && (r.status || "todo") === "todo") { r.status = "active"; touch(S.date); }
   const lbl = "Pomodoro" + (r.category ? " · " + r.category : "");
   T = {rowId:r.id, date:S.date, label:lbl, endAt:Date.now() + POMO_MS, left:POMO_MS, running:true, done:false, sound:(T && T.sound) || (function(){ try { return localStorage.getItem("dayStructure.sound") || "tick"; } catch(e){ return "tick"; } })()};
   saveT(); wakeOn(); runTimer(); render(); toast("25 minutes. Focus.");
@@ -1836,7 +1851,7 @@ document.addEventListener("click", e => {
     case "taskTimer": if (r) { const until = el.dataset.until != null ? Number(el.dataset.until) : null; const n = new Date(), m = n.getHours() * 60 + n.getMinutes() + n.getSeconds() / 60;
       const mins = until != null ? Math.max(1, Math.round(until - m)) : (r.timerMin ?? (S.view === "plan" ? r.planDur : (r.actualDur ?? r.planDur)) ?? 15); taskTimerFor(r, S.date, mins, until); } return;
     case "tPlus": if (T && T.mode === "task") { T.endAt = Math.max(Date.now(), T.endAt) + 5 * 60000; T.ms = Math.max(T.ms, 0) + 5 * 60000; T.done = false; T.running = true; T.doneAt = null; saveT(); wakeOn(); runTimer(); } return;
-    case "tTaskDone": { const t = T; if (t) { const d0 = S.days[t.date], pr = d0 && d0.rows.find(x => x.id === t.rowId); if (pr && !pr.inserted && pr.status === "todo") { pr.status = "done"; touch(t.date); } } alarmStop(); clearInterval(tickIv); noiseStop(); wakeOff(); T = null; saveT(); renderTimer(); render(); return; }
+    case "tTaskDone": { const t = T; if (t) { const d0 = S.days[t.date], pr = d0 && d0.rows.find(x => x.id === t.rowId); if (pr && !pr.inserted && (pr.status === "todo" || pr.status === "active")) { pr.status = "done"; touch(t.date); } } alarmStop(); clearInterval(tickIv); noiseStop(); wakeOff(); T = null; saveT(); renderTimer(); render(); return; }
     case "breakStart": if (r) { if (T && T.mode !== "break" && T.done && T.doneAt) { const d0 = S.days[T.date], pr = d0 && d0.rows.find(x => x.id === T.rowId); if (pr) { pr.overtime = Math.floor((Date.now() - T.doneAt) / 60000); touch(T.date); } } breakTimerFor(r, S.date); } return;
     case "tNext": { const nx = T && nextPomoFor(T); alarmStop(); if (nx) { S.date = T.date; T = null; timerStart(nx); } else { T = null; saveT(); renderTimer(); } return; }
     case "tStop": alarmStop(); clearInterval(tickIv); noiseStop(); wakeOff(); T = null; saveT(); renderTimer(); render(); return;
@@ -2017,7 +2032,7 @@ function csvCell(s){ s = String(s ?? ""); return /[",\n;]/.test(s) ? '"' + s.rep
 function buildCSV(d){
   const ctx = computeActual(d);
   const head = ["Date","Start time","Allotted time (min)","Actual start","Actual time needed (min)","Type of doing","Pomodoro topic","Content","Revised content","Comments","Energy (1-5)","Concentration (1-5)","What worked","What didn't","Status","Came up"];
-  const lines = d.rows.map(r => { const a = ctx[r.id]; return [d.date, r.inserted ? "" : fmtT(r.planStart), r.inserted ? "" : r.planDur, r.status === "skipped" ? "" : fmtT(a.start), r.status === "skipped" ? 0 : a.dur, r.kind === "pomodoro" ? "Pomodoro" : r.type, r.category, r.inserted && r.kind !== "pomodoro" ? "" : planText(r, d), actualText(r, d), r.comments, r.energy || "", r.focus || "", r.worked, r.didnt, r.inserted ? "came up" : r.status, r.inserted ? "yes" : ""].map(csvCell).join(","); });
+  const lines = d.rows.map(r => { const a = ctx[r.id]; return [d.date, r.inserted ? "" : fmtT(r.planStart), r.inserted ? "" : r.planDur, r.status === "skipped" ? "" : fmtT(a.start), r.status === "skipped" ? 0 : a.dur, r.kind === "pomodoro" ? "Pomodoro" : r.type, r.category, r.inserted && r.kind !== "pomodoro" ? "" : planText(r, d), actualText(r, d), r.comments, r.energy || "", r.focus || "", r.worked, r.didnt, r.inserted ? "came up" : r.status === "active" ? "in progress" : r.status, r.inserted ? "yes" : ""].map(csvCell).join(","); });
   return "﻿" + [head.join(","), ...lines].join("\n");
 }
 function buildMD(d){
