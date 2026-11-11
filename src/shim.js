@@ -212,7 +212,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     const pill = document.getElementById("pill");
     const rb = document.getElementById("reloadBtn");
-    if (rb && !document.getElementById("dsGear")) { const g = rb.cloneNode(false); g.id = "dsGear"; g.textContent = "⚙︎"; g.title = "Sync settings"; g.setAttribute("aria-label", "Sync settings"); g.addEventListener("click", setupSheet); rb.parentNode.insertBefore(g, rb); }
+    if (rb && !document.getElementById("dsGear")) { const g = rb.cloneNode(false); g.id = "dsGear"; g.textContent = "⚙︎"; g.style.fontSize = "24px"; g.title = "Sync settings"; g.setAttribute("aria-label", "Sync settings"); g.addEventListener("click", setupSheet); rb.parentNode.insertBefore(g, rb); }
     document.addEventListener("click", e => { if (!ready() && e.target.closest && e.target.closest("#syncBtn")) { e.preventDefault(); e.stopImmediatePropagation(); setupSheet(); } }, true);
     if (pill) { pill.style.cursor = "pointer"; pill.setAttribute("role", "button"); pill.title = "Sync settings"; pill.addEventListener("click", setupSheet); }
     if (!ready() && !ls.get("dsSync.hinted2", false)) { ls.set("dsSync.hinted2", true); setTimeout(() => alertBox("Tip: tap ⚙︎ at the top to set up sync with your other devices."), 1500); }
