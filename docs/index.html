@@ -327,6 +327,9 @@ button.time:hover b{color:var(--accent)}
 .small .it .topomo{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;font-size:12.5px;padding:4px 9px;min-height:30px;flex:none;white-space:nowrap}
 .small .it .topomo.on{border-color:var(--accent);color:var(--accent)}
 .pomolist{display:grid;gap:8px;margin-top:12px}
+.xbl{display:grid;gap:14px;margin-top:12px}
+.xbl select,.xbl input[type=text]{width:100%}
+.extra-t .tstate{margin-top:6px}
 .pomolist button{display:flex;justify-content:space-between;gap:10px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;font-size:15px;min-height:46px}
 .pomolist button small{color:var(--muted);font-size:12.5px}
 .pomolist button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
@@ -1087,7 +1090,11 @@ function tasksActualEditor(r, d){
   return `${pomoStartHTML(r)}<details class="sfold" data-fold="tasks" ${foldOpen("tasks") ? "open" : ""}><summary>Tasks for this session <span class="pv">${tasks.length ? `${nDone}/${tasks.length} done${est ? " · est. " + est + " min" : ""}` : "none yet"}</span></summary><div class="fbody"><div class="field"><div class="taskbox">${tasks.map(taskHTML).join("") || `<p class="hint">No tasks yet. Add what you plan to do in these 25 minutes.</p>`}
     ${r.extras.map(x => `<div class="task extra-t">
       <div class="row"><input type="text" autocomplete="off" id="xn-${x.id}" data-f="extra" data-k="name" data-t="${x.id}" data-id="${r.id}" value="${esc(x.name)}" placeholder="Extra task I ended up doing">${wbtn({kind:"dur", f:"extra", id:r.id, t:x.id, k:"actual", val:x.actual, empty:"–", title:"Time it took", max:90, cls:"sm"})}<button type="button" class="x" data-act="rmExtra" data-t="${x.id}" data-id="${r.id}" aria-label="Remove">×</button></div>
-      <input type="text" autocomplete="off" id="xw-${x.id}" data-f="extra" data-k="why" data-t="${x.id}" data-id="${r.id}" value="${esc(x.why)}" placeholder="Why did it come in?"></div>`).join("")}
+      <input type="text" autocomplete="off" id="xw-${x.id}" data-f="extra" data-k="why" data-t="${x.id}" data-id="${r.id}" value="${esc(x.why)}" placeholder="Why did it come in?">
+      ${x.bl && blGet(x.bl) ? `<div class="from">↪ Backlog · ${esc(blPath(blGet(x.bl)) ? blPath(blGet(x.bl)) + " › " : "")}${esc(blGet(x.bl).title)} <span class="hint">(${BCOL[blGet(x.bl).col] ? BCOL[blGet(x.bl).col].e + " " + BCOL[blGet(x.bl).col].l : ""})</span></div>` : ""}${x.carriedTo ? `<div class="from">→ moved to the ${esc(x.carriedLabel || "next")} Pomodoro</div>` : ""}
+      <div class="tstate"><button type="button" data-act="xToBl" data-t="${x.id}" data-id="${r.id}" aria-pressed="${!!(x.bl && blGet(x.bl))}">${x.bl && blGet(x.bl) ? "✎ Backlog item" : "＋ Backlog / project…"}</button>
+        <button type="button" data-act="xCarry" data-t="${x.id}" data-id="${r.id}" aria-pressed="${!!x.carriedTo}" ${!nx && !x.carriedTo ? "disabled" : ""} title="${nx ? "Copy to the Pomodoro at " + fmtT(nx.planStart) : "No later Pomodoro today"}">→ Next Pomodoro</button>
+        <button type="button" data-act="xToday" data-t="${x.id}" data-id="${r.id}" aria-pressed="${!!(x.bl && (d.picks || []).some(p => p.bl === x.bl))}">☀︎ Today's list</button></div></div>`).join("")}
     </div>
     ${r.overtime ? `<p class="hint" style="color:var(--came)">Worked ${r.overtime} min past the 25 minutes.</p>` : ""}
     ${tasks.length ? `<div class="psum"><span><b>${nDone}/${tasks.length}</b> done</span><span>Estimated <b>${est} min</b></span><span>Took <b>${act} min</b></span>${est && act ? `<span>${act > est ? "+" : ""}${act - est} min vs estimate</span>` : ""}</div>` : ""}</div>
@@ -1895,6 +1902,17 @@ document.addEventListener("click", e => {
     case "rmTask": r.tasks = r.tasks.filter(t => t.id !== el.dataset.t); (d.small || []).forEach(x => { if (x.pomoTask === el.dataset.t) x.pomo = x.pomoTask = null; }); break;
     case "outcome": if (task) { if (task.outcome === "carried") { const tg = d.rows.find(x => x.id === task.carriedTo); if (tg) tg.tasks = tg.tasks.filter(x => x.id !== task.carriedId); task.carriedTo = task.carriedId = task.carriedLabel = null; } task.outcome = task.outcome === v ? "" : v; if (!r.inserted && r.status === "todo") r.status = "done"; } break;
     case "addExtra": r.extras.push({id:uid(), name:"", why:"", actual:null}); break;
+    case "xToBl": if (task) xToBlSheet(r, task); return;
+    case "xCarry": if (task) {
+      if (task.carriedTo) { const tg = d.rows.find(x => x.id === task.carriedTo); if (tg) tg.tasks = tg.tasks.filter(x => x.id !== task.carriedId); task.carriedTo = task.carriedId = task.carriedLabel = null; break; }
+      const nx = nextPomo(r, d); if (!nx) { toast("No later Pomodoro today: add one first"); return; }
+      const nt = mkTask(task.name, null); nt.from = "Came up in the " + fmtT(r.planStart) + " Pomodoro"; nt.note = task.why || ""; if (task.bl) nt.bl = task.bl;
+      nx.tasks = nx.tasks.filter(x => x.name || x.est); nx.tasks.push(nt); task.carriedTo = nx.id; task.carriedId = nt.id; task.carriedLabel = fmtT(nx.planStart);
+      toast("Added to the " + fmtT(nx.planStart) + " Pomodoro"); } break;
+    case "xToday": if (task) {
+      if (task.bl && (d.picks || []).some(p => p.bl === task.bl)) { d.picks = d.picks.filter(p => p.bl !== task.bl); toast("Taken off today's list"); break; }
+      if (!task.bl) { xToBlSheet(r, task, {today: true}); return; }
+      const it = blGet(task.bl); d.picks = d.picks || []; d.picks.push({id: uid(), bl: it.id, name: it.title, ctx: blPath(it), extra: true}); toast("On today's list, under Additional tasks taken on"); } break;
     case "rmExtra": r.extras = r.extras.filter(t => t.id !== el.dataset.t); break;
     case "swapReset": { r.status = "skipped"; const nr = BRK(60, [45,60,90]); nr.inserted = true; nr.planStart = null; nr.planDur = null; nr.actualDur = 60; nr.status = "done"; nr.choices = [15,30,45,60];
       d.rows.splice(d.rows.indexOf(r)+1, 0, nr); S.open = nr.id; toast("Pomodoro skipped. Pick a reset break."); break; }
@@ -2404,6 +2422,68 @@ function tMoveSheet(r, t){
     const grp = r.tasks.splice(k, m - k); tg.tasks = tg.tasks.filter(x => x.name || x.est); tg.tasks.push(...grp);
     const ids = new Set(grp.map(x => x.id)); (d.small || []).forEach(sm => { if (ids.has(sm.pomoTask)) sm.pomo = tg.id; });
     toast("Moved to the " + fmtT(tg.planStart) + " Pomodoro"); });
+}
+/* An extra task that came up in a Pomodoro becomes a backlog item: pick the column and a project (suggested by matching words) or make a new one */
+function blWords(t){ return new Set(String(t || "").toLowerCase().replace(/[^\p{L}\p{N} ]/gu, " ").split(/\s+/).filter(w => w.length > 2 && !["the","and","for","with","from","that","this","into","von","und","der","die","das"].includes(w))); }
+function xToBlSheet(r, x, o){
+  o = o || {}; const d = curDay(); if (!d) return; const B = BL();
+  const ex = x.bl && blGet(x.bl);
+  const projs = B.items.filter(it => !isClosed(it) && it.col !== "archive" && (!it.parent || !(blGet(it.parent) || {}).parent) && it.id !== (ex && ex.id));
+  const label = it => (it.parent ? blShort((blGet(it.parent) || {}).title || "") + " › " : "") + it.title;
+  const ws = blWords(x.name + " " + (x.why || ""));
+  const score = it => { const pw = blWords(it.title + " " + (it.tags || []).join(" ")); let n = 0; ws.forEach(w => { pw.forEach(q => { if (q === w || (w.length > 4 && (q.startsWith(w.slice(0, 5)) || w.startsWith(q.slice(0, 5))))) n++; }); }); return n; };
+  const sug = projs.map(it => [it, score(it)]).filter(a => a[1] > 0).sort((a, b) => b[1] - a[1] || (a[0].parent ? 1 : 0) - (b[0].parent ? 1 : 0)).slice(0, 4).map(a => a[0]);
+  let col = ex ? ex.col : "tackling", par = ex ? ex.parent : (sug[0] ? sug[0].id : null), newP = false, today = ex ? (d.picks || []).some(p => p.bl === ex.id) : !!o.today;
+  const nx = nextPomo(r, d); let toNext = !!x.carriedTo;
+  const sh = $("#sheet");
+  const draw = () => {
+    sh.innerHTML = `<div class="scrim" data-w="close"></div><div class="sheetbox tall" role="dialog" aria-modal="true" aria-label="Backlog item">
+    <div class="sheethead"><b>${ex ? "Backlog item" : "Make it a backlog item"}</b><div><button class="btn" data-w="close">Cancel</button><button class="btn primary" data-w="save">${ex ? "Save" : "Add"}</button></div></div>
+    <div class="xbl">
+    <label class="field"><span>Task</span><input type="text" id="xb-title" autocomplete="off" value="${esc(ex ? ex.title : x.name)}" placeholder="What is the task?"></label>
+    <div class="field"><span>Where on the board</span><div class="tstate">${BCOLS.filter(c => c[0] !== "archive").map(([k, l, e]) => `<button type="button" data-col="${k}" aria-pressed="${col === k}">${e} ${l}</button>`).join("")}</div></div>
+    <div class="field"><span>Is it part of a project?</span>
+      ${sug.length ? `<div class="hint" style="text-align:left;margin:0">Looks related to:</div><div class="tstate">${sug.map(it => `<button type="button" data-par="${it.id}" aria-pressed="${!newP && par === it.id}">${esc(label(it))}</button>`).join("")}</div>` : ""}
+      <select id="xb-par"><option value="">No project</option>${projs.map(it => `<option value="${it.id}" ${!newP && par === it.id ? "selected" : ""}>${esc(label(it))}</option>`).join("")}<option value="__new" ${newP ? "selected" : ""}>＋ New project…</option></select>
+      ${newP ? `<input type="text" id="xb-newp" autocomplete="off" placeholder="Name of the new project">` : ""}</div>
+    <div class="tstate">
+      <button type="button" data-w="today" aria-pressed="${today}">☀︎ Also on today's list</button>
+      ${nx || toNext ? `<button type="button" data-w="next" aria-pressed="${toNext}">→ Also in the ${nx ? fmtT(nx.planStart) : ""} Pomodoro</button>` : ""}</div>
+    </div></div>`;
+  };
+  draw(); sh.hidden = false;
+  const close = () => { sh.hidden = true; sh.innerHTML = ""; sh.onclick = sh.onchange = null; };
+  const keep = () => { const t = $("#xb-title"); if (t) x._t = t.value; const np = $("#xb-newp"); if (np) x._np = np.value; };
+  const restore = () => { const t = $("#xb-title"); if (t && x._t != null) t.value = x._t; const np = $("#xb-newp"); if (np && x._np != null) np.value = x._np; };
+  sh.onchange = e => { if (e.target.id === "xb-par") { keep(); newP = e.target.value === "__new"; par = newP ? null : (e.target.value || null); draw(); restore(); if (newP) { const np = $("#xb-newp"); if (np) np.focus(); } } };
+  sh.onclick = e => {
+    const c = e.target.closest("[data-col]"), pp = e.target.closest("[data-par]"), w = e.target.closest("[data-w]");
+    if (c) { keep(); col = c.dataset.col; draw(); restore(); return; }
+    if (pp) { keep(); newP = false; par = par === pp.dataset.par ? null : pp.dataset.par; draw(); restore(); return; }
+    if (!w) return; const k = w.dataset.w;
+    if (k === "today") { keep(); today = !today; draw(); restore(); return; }
+    if (k === "next") { keep(); toNext = !toNext; draw(); restore(); return; }
+    if (k === "close") { delete x._t; delete x._np; close(); return; }
+    if (k === "save") {
+      const title = ($("#xb-title").value || "").trim(); if (!title) { $("#xb-title").focus(); return; }
+      let parent = par;
+      if (newP) { const nm = ($("#xb-newp") && $("#xb-newp").value || "").trim(); if (!nm) { $("#xb-newp").focus(); return; } const P = blItem(nm, col === "done" ? "tackling" : col, null); B.items.push(P); parent = P.id; }
+      let it = ex;
+      if (!it) { it = blItem(title, col, parent, {notes: x.why || "", actual: x.actual ?? null}); if (parent && blGet(parent)) it.tags = (blGet(parent).tags || []).slice(0, 1);
+        blLog(it, "planned", "Came up in the " + fmtT(r.planStart) + " Pomodoro on " + dShort(d.date)); B.items.push(it); }
+      else { it.title = title; it.parent = parent || null; if (it.col !== col) blMove(it, col); }
+      if (col === "done" && !it.finished) it.finished = Date.now();
+      x.bl = it.id; x.name = title; delete x._t; delete x._np;
+      d.picks = d.picks || []; const on = d.picks.some(p => p.bl === it.id);
+      if (today && !on) d.picks.push({id: uid(), bl: it.id, name: it.title, ctx: blPath(it), extra: true});
+      if (!today && on) d.picks = d.picks.filter(p => p.bl !== it.id);
+      if (toNext && !x.carriedTo && nx) { const nt = mkTask(it.title, null); nt.from = "Came up in the " + fmtT(r.planStart) + " Pomodoro"; nt.bl = it.id; nt.note = x.why || ""; nx.tasks = nx.tasks.filter(q => q.name || q.est); nx.tasks.push(nt); x.carriedTo = nx.id; x.carriedId = nt.id; x.carriedLabel = fmtT(nx.planStart); }
+      if (!toNext && x.carriedTo) { const tg = d.rows.find(q => q.id === x.carriedTo); if (tg) tg.tasks = tg.tasks.filter(q => q.id !== x.carriedId); x.carriedTo = x.carriedId = x.carriedLabel = null; }
+      (d.rows || []).forEach(q => (q.tasks || []).forEach(t => { if (t.id === x.carriedId) t.bl = it.id; }));
+      touchBacklog(); touch(S.date); close(); render();
+      toast(`${BCOL[it.col].e} ${ex ? "Saved" : "Added to " + BCOL[it.col].l}${it.parent ? " · " + blShort((blGet(it.parent) || {}).title || "") : ""}`);
+    }
+  };
 }
 function pkExtraProj(){
   let P = BL().items.find(x => !x.parent && x.title === "Additional tasks taken on" && x.col !== "archive");
