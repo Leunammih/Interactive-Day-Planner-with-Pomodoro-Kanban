@@ -443,9 +443,12 @@ body.v-backlog .daynav{display:none}
 .kgrp{--h:180;display:flex;gap:6px;align-items:baseline;border:0;background:none;text-align:left;padding:4px 2px 0;font-size:13px;font-weight:700;color:hsl(var(--h) 50% var(--chip-fg-l));border-top:2px solid hsl(var(--h) 45% 48%);margin-top:2px;overflow-wrap:anywhere}
 .kdone{display:grid;margin-left:10px;margin-top:-4px;border-left:2px solid hsl(var(--h) 45% 48% / .4);padding:2px 0}
 .kdone button{border:0;background:none;text-align:left;font-size:12.5px;color:var(--muted);padding:3px 6px;overflow-wrap:anywhere}
-.kadd{display:flex;gap:6px}
-.kadd input{flex:1;min-width:0;font-size:15px;padding:7px 9px}
-.kadd button{min-height:36px;padding:6px 10px}
+.kadd{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-bottom:8px;min-width:0}
+.kadd-l,.kadd-r{display:flex;gap:6px;min-width:0}
+.kadd-l select{flex:1 1 0;min-width:0;width:0;font-size:13.5px;padding:5px 7px}
+.kadd-l select:first-child{flex:0 0 auto;width:auto}
+.kadd-r input{flex:1;min-width:0;font-size:15px;padding:7px 9px}
+.kadd-r button{min-height:36px;padding:6px 10px}
 .bproj{--h:180;margin-top:12px;background:var(--surface);border:1px solid var(--line);border-left:5px solid hsl(var(--h) 45% 48%);border-radius:var(--r);padding:12px 13px;display:grid;gap:8px}
 .bproj .bph{display:flex;gap:8px;align-items:baseline;border:0;background:none;padding:0;text-align:left;font-family:var(--f-display);font-size:17px;font-weight:700;width:100%}
 .pbar{height:6px;border-radius:4px;background:var(--sunk);overflow:hidden}
@@ -2307,8 +2310,9 @@ function renderBacklog(){
   const vis = new Set(all.map(x => x.id));
   h += `<div class="kb" id="kb">${cols.map(([k, l, e]) => { const ci = all.filter(x => x.col === k);
     return `<section class="kcol" data-col="${k}" aria-label="${l}"><h3><span>${e} ${l}</span><small>${ci.length}</small></h3>
+      ${k === "archive" ? "" : kaddHTML(k, l)}
       ${blColHTML(k, vis) || `<p class="empty-col">${k === "waiting" ? "Nothing waiting on others." : k === "done" ? "Finished items land here." : "Empty"}</p>`}
-      ${k === "archive" ? "" : `<div class="kadd"><input type="text" autocomplete="off" id="kadd-${k}" data-kadd="${k}" placeholder="${f.proj ? "New task" : k === "ideas" ? "New idea" : "New project or task"}" aria-label="Add to ${l}"><button type="button" class="btn" data-act="blAdd" data-v="${k}">Add</button></div>`}</section>`; }).join("")}</div>
+      </section>`; }).join("")}</div>
     <p class="hint">Drag a card by its ⠿ handle: up or down, into another column, or onto another card. Drop a task on a project card to put it in that project, above or below another task to place it next to it, or on the right edge of a task to put it one level below. ↑ ↓ also set the priority: a project takes its tasks along, a task moves only within its project. ▾ folds a project or task. The emoji row moves just that card to another column. 🔍 checks Reminders, 🔔 adds it to today's Reminders at 11:00, 🍅 puts it into today's Pomodoros.</p>`;
   return h;
 }
@@ -2547,7 +2551,7 @@ let SAMPLE = null;
 function blAiHTML(){
   const A = S.blAi;
   let h = `<div class="aibox"><label class="field"><span>Add with Claude ✨</span><textarea id="blPrompt" rows="2" placeholder="Type or dictate anything, e.g. 'For the workshop: book the room by Friday and ask about the music'">${esc(S.blAiDraft || "")}</textarea></label>
-    <div class="btnrow">${S.blAiBusy ? `<button type="button" class="btn" data-act="blAiStop">Stop</button><span class="hint" style="align-self:center">${esc(S.blAiBusy)}</span>` : `<button type="button" class="btn primary" data-act="blAi">${SAMPLE ? "Sort it with Claude" : "Add to Ideas"}</button>${S.aiChecked && !SAMPLE ? `<span class="hint" style="align-self:center">Claude can't be reached here, so it goes to Ideas as typed.</span>` : `<span class="hint" style="align-self:center">You review the result before anything is added.</span>`}`}</div>`;
+    <div class="btnrow">${S.blAiBusy ? `<button type="button" class="btn" data-act="blAiStop">Stop</button><span class="hint" style="align-self:center">${esc(S.blAiBusy)}</span>` : `<button type="button" class="btn primary" data-act="blAi">${SAMPLE ? "Sort it with Claude" : "Add to Ideas"}</button>${S.aiChecked && !SAMPLE ? `<span class="hint" style="align-self:center">To let Claude sort it, add a Claude API key under ⚙︎. For now it goes to Ideas as typed.</span>` : `<span class="hint" style="align-self:center">You review the result before anything is added.</span>`}`}</div>`;
   if (A && A.items) h += `<div class="aiprev"><b>Claude suggests ${A.items.length} item${A.items.length === 1 ? "" : "s"}</b>${A.note ? `<p class="hint">${esc(A.note)}</p>` : ""}<ul>${A.items.map((x, i) => `<li class="${x.off ? "off" : ""}"><button type="button" class="cbox" data-act="blAiPick" data-v="${i}" aria-pressed="${!x.off}" aria-label="Include">✓</button><div><div class="kt">${BCOL[x.col] ? BCOL[x.col].e : "🪵"} ${blAutoIcons(x.title + " " + (x.where || "")).join("")} ${esc(x.title)}</div><div class="hint">${x.where ? "↳ " + esc(x.where) : "New project"}${x.due ? " · due " + esc(dShort(x.due)) : ""}${x.waitFor ? " · waiting for " + esc(x.waitFor) : ""}${x.waitUntil ? " until " + esc(dShort(x.waitUntil)) : ""}${x.est ? " · " + fmtD(x.est) : ""}${x.why ? " · " + esc(x.why) : ""}</div></div></li>`).join("")}</ul>
     <div class="btnrow"><button type="button" class="btn primary" data-act="blAiAdd">Add ${A.items.filter(x => !x.off).length}</button><button type="button" class="btn ghost" data-act="blAiDrop">Discard</button></div></div>`;
   return h + `</div>`;
@@ -2598,6 +2602,7 @@ Reply with only JSON: {"items":[{"title":"","parent":null,"col":"backlog","due":
     const c = e && e.code;
     if (c === "not_granted" || c === "sampling_disabled" || c === "not_declared" || c === "capability_disabled" || c === "capability_removed") { SAMPLE = null; toast("Claude isn't allowed here. Tap again to add it to Ideas as typed."); }
     else if (c === "rate_limited") toast("Claude is busy right now. Try again in a bit.");
+    else if (c === "bad_key") toast("The Claude API key was refused. Check it under ⚙︎.");
     else if (c !== "cancelled") toast("That didn't work. Try again.");
   } finally { S.blAiBusy = null; S.blAiCtl = null; render(); }
 }
@@ -2727,9 +2732,22 @@ function blSheet(id, focusSel){
     if (e.key === "Enter" && e.target.id === "bs-title") { e.preventDefault(); e.target.blur(); }
     if (e.key === "Escape") blClose(); };
 }
+function kaddLvl(col){ const L = (S.bl.addL || {})[col]; return L || (S.bl.proj ? "task" : "project"); }
+function kaddParOpts(col, lvl){
+  const want = lvl === "task" ? 0 : 1, cur = (S.bl.addP || {})[col] || (lvl === "task" ? S.bl.proj : "") || "";
+  const its = BL().items.filter(x => x.col !== "archive" && !isClosed(x) && blDepth(x) === want);
+  return `<option value="">${lvl === "task" ? "Under which project?" : "Under which task?"}</option>` + its.map(x => `<option value="${x.id}" ${x.id === cur ? "selected" : ""}>${esc((want ? blShort((blGet(x.parent) || {}).title || "") + " › " : "") + x.title)}</option>`).join("");
+}
+function kaddHTML(k, l){
+  const lvl = kaddLvl(k);
+  return `<div class="kadd"><div class="kadd-l"><select data-kl="${k}" aria-label="What you're adding">${[["project","Project"],["task","Task"],["subtask","Subtask"]].map(([v, t]) => `<option value="${v}" ${lvl === v ? "selected" : ""}>${t}</option>`).join("")}</select>${lvl === "project" ? "" : `<select data-kp="${k}" aria-label="Parent">${kaddParOpts(k, lvl)}</select>`}</div>
+    <div class="kadd-r"><input type="text" autocomplete="off" id="kadd-${k}" data-kadd="${k}" placeholder="New ${lvl} in ${esc(l)}" aria-label="Add to ${esc(l)}"><button type="button" class="btn" data-act="blAdd" data-v="${k}">Add</button></div></div>`;
+}
 function blAdd(col){
   const inp = $("#kadd-" + col), v = inp && inp.value.trim(); if (!v) { if (inp) inp.focus(); return; }
-  const par = S.bl.proj && blGet(S.bl.proj) ? S.bl.proj : null;
+  const lvl = kaddLvl(col), ps = $(`[data-kp="${col}"]`), pv = ps ? ps.value : "";
+  if (lvl !== "project" && !pv) { toast(lvl === "task" ? "Pick the project first" : "Pick the task first"); if (ps) ps.focus(); return; }
+  const par = lvl === "project" ? null : (blGet(pv) ? pv : null);
   BL().items.push(blItem(v, col, par, {tags: S.bl.tag ? [S.bl.tag] : (par ? (blGet(par).tags || []).slice(0, 1) : [])}));
   touchBacklog(); render(); const n = $("#kadd-" + col); if (n) n.focus(); toast(`Added to ${BCOL[col].l}`);
 }
@@ -2765,6 +2783,9 @@ function blAction(el, act){
   }
 }
 function blJump(col){ const kb = $("#kb"), c = kb && kb.querySelector(`[data-col="${col}"]`); if (!c) return; kb.scrollTo({left: c.offsetLeft - kb.offsetLeft - (kb.clientWidth > 900 ? 0 : 16), behavior:"smooth"}); }
+document.addEventListener("change", e => { const el = e.target; if (!el.dataset) return;
+  if (el.dataset.kl) { S.bl.addL = Object.assign({}, S.bl.addL, {[el.dataset.kl]: el.value}); S.bl.addP = Object.assign({}, S.bl.addP, {[el.dataset.kl]: ""}); blSaveUI(); const v = ($("#kadd-" + el.dataset.kl) || {}).value || ""; render(); const n = $("#kadd-" + el.dataset.kl); if (n) { n.value = v; n.focus(); } return; }
+  if (el.dataset.kp) { S.bl.addP = Object.assign({}, S.bl.addP, {[el.dataset.kp]: el.value}); blSaveUI(); return; } });
 document.addEventListener("change", e => { const el = e.target; if (el.dataset && el.dataset.blf) { S.bl[el.dataset.blf] = el.value; blSaveUI(); render(); } });
 document.addEventListener("input", e => { const el = e.target; if (el.dataset && el.dataset.blcfg) { BL().cfg = Object.assign(blCfg(), {[el.dataset.blcfg]: el.value.trim() || (el.dataset.blcfg === "add" ? "Backlog Add" : "Backlog Find")}); USRC = "t:" + el.id; touchBacklog(); USRC = null; } });
 document.addEventListener("keydown", e => { const el = e.target; if (e.key === "Enter" && el.dataset && el.dataset.kadd) { e.preventDefault(); blAdd(el.dataset.kadd); } });

@@ -159,13 +159,40 @@
     }
   };
 
+  /* ---------- "Add with Claude": calls the Claude API directly with the user's own API key (stored only on this device) ---------- */
+  const AIKEY = "dsAi.key";
+  const sample = {
+    async json(prompt, opts) {
+      const key = ls.get(AIKEY, ""); if (!key) { const e = new Error("no key"); e.code = "not_granted"; throw e; }
+      let res;
+      try {
+        res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST", signal: opts && opts.signal,
+          headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01",
+            "anthropic-dangerous-direct-browser-access": "true", "anthropic-beta": "server-side-fallback-2026-07-01" },
+          body: JSON.stringify({ model: "claude-opus-5-5", max_tokens: 16000, fallbacks: "default", output_config: { effort: "low" },
+            messages: [{ role: "user", content: prompt + "\n\nReply with the JSON object only, no other text." }] })
+        });
+      } catch (err) { const e = new Error("network"); e.code = err && err.name === "AbortError" ? "cancelled" : "network"; throw e; }
+      if (res.status === 429 || res.status === 529) { const e = new Error("busy"); e.code = "rate_limited"; throw e; }
+      if (res.status === 401 || res.status === 403) { const e = new Error("key refused"); e.code = "bad_key"; throw e; }
+      if (!res.ok) { const e = new Error("http " + res.status); e.code = "error"; throw e; }
+      const msg = await res.json();
+      if (msg.stop_reason === "refusal") { const e = new Error("refused"); e.code = "error"; throw e; }
+      const text = (msg.content || []).filter(b => b.type === "text").map(b => b.text).join("");
+      const m = text.match(/\{[\s\S]*\}/); if (!m) { const e = new Error("no json"); e.code = "error"; throw e; }
+      return JSON.parse(m[0]);
+    }
+  };
+
   window.claude = {
     offlineShim: true,
     async use(name) {
       if (name === "db") return { collection };
       if (name === "user") return { id: async () => "me" };
       if (name === "downloads") return downloads;
-      return null; // sample and anything else: not available here
+      if (name === "sample") return ls.get(AIKEY, "") ? sample : null;
+      return null;
     }
   };
 
@@ -183,8 +210,12 @@
         <label class="field"><span>Private data repo (owner/name)</span><input type="text" id="dsRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="your-name/day-planner-data" value="${c.repo || ""}"></label>
         <label class="field"><span>GitHub token</span><input type="password" id="dsTok" autocomplete="off" placeholder="github_pat_…" value="${c.token ? "••••••••" : ""}"></label>
         <p class="hint" style="margin:0">Create it at github.com → Settings → Developer settings → Fine-grained tokens. Repository access: only the data repo. Permissions: Contents, Read and write. Use the same token on each device.</p>
+        <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
+        <b style="font-family:var(--f-display);font-size:17px">Claude for "Add with Claude"</b>
+        <label class="field"><span>Claude API key</span><input type="password" id="dsAiKey" autocomplete="off" placeholder="sk-ant-…" value="${ls.get(AIKEY, "") ? "••••••••" : ""}"></label>
+        <p class="hint" style="margin:0">From console.anthropic.com → API keys. It is kept only on this device and sent only to Anthropic. Each sort costs a fraction of a cent. Leave empty to add ideas as typed.</p>
         <div class="btnrow">
-          <button class="btn primary" value="save">Save and sync</button>
+          <button class="btn primary" value="save">Save</button>
           <button class="btn" value="now" ${ready() ? "" : "disabled"}>Sync now</button>
           <button class="btn danger" value="off" ${ready() ? "" : "disabled"}>Turn off on this device</button>
           <button class="btn ghost" value="close">Close</button>
@@ -193,10 +224,13 @@
     d.style.cssText = "border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);max-width:min(520px,calc(100% - 32px));padding:18px";
     document.body.appendChild(d);
     d.addEventListener("close", async () => {
+      const aiIn = d.querySelector("#dsAiKey").value.trim(), aiOld = ls.get(AIKEY, "");
       const v = d.returnValue, tokIn = d.querySelector("#dsTok").value.trim(), repo = d.querySelector("#dsRepo").value.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$|\/$/g, ""); d.remove();
       if (v === "now") { await cycle(); return; }
       if (v === "off") { [K.token, K.repo, K.etag, K.shas].forEach(ls.del); location.reload(); return; }
       if (v !== "save") return;
+      if (!aiIn.startsWith("••") && aiIn !== aiOld) { if (aiIn) ls.set(AIKEY, aiIn); else ls.del(AIKEY); if ((!tokIn && !repo) || (tokIn.startsWith("••") && repo === c.repo)) { location.reload(); return; } }
+      if (!tokIn && !repo && !ready()) return;
       const tok = tokIn.startsWith("••") ? c.token : tokIn;
       if (!tok || !/^[\w.-]+\/[\w.-]+$/.test(repo)) { alertBox("Fill in both the repo (owner/name) and the token."); return; }
       try {
