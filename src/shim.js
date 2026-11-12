@@ -59,6 +59,8 @@
       if (pending[id]) { shas[id] = f.sha; continue; }   // our newer copy goes up next
       try { cache[id] = JSON.parse(await blobText(f.sha)); shas[id] = f.sha; changed = true; } catch (e) { if (e && e.code) throw e; }
     }
+    // only what is really in the repo counts as remote (drop stale entries, e.g. from an earlier sync setup)
+    Object.keys(cache).forEach(id => { if (!seen[id]) { delete cache[id]; delete shas[id]; changed = true; } });
     ls.set(K.shas, shas); ls.set(K.cache, cache);
     ls.set(K.etag, res.headers.get("ETag") || "");
     return changed || !firstDone ? { docs: cache } : null;
@@ -90,6 +92,7 @@
   const listeners = [];
   let pending = ls.get(K.pending, {});      // docId -> data, not yet pushed
   let busy = false, failed = false, timer = null; var firstDone = false;
+  ls.del("dsSync.etag"); // always do a full compare on start
   const status = { state: "local", msg: "" };
   function setStatus(state, msg) { status.state = state; status.msg = msg || ""; document.dispatchEvent(new CustomEvent("ds-sync", { detail: status })); }
 
@@ -198,7 +201,7 @@
       if (!tok || !/^[\w.-]+\/[\w.-]+$/.test(repo)) { alertBox("Fill in both the repo (owner/name) and the token."); return; }
       try {
         const branch = await checkRepo(tok, repo);
-        if (repo !== c.repo) { [K.etag, K.shas].forEach(ls.del); }
+        if (repo !== c.repo) { [K.etag, K.shas, K.cache].forEach(ls.del); }
         ls.set(K.token, tok); ls.set(K.repo, repo); ls.set(K.branch, branch);
         location.reload();
       } catch (e) {
@@ -212,7 +215,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     const pill = document.getElementById("pill");
     const rb = document.getElementById("reloadBtn");
-    if (rb && !document.getElementById("dsGear")) { const g = rb.cloneNode(false); g.id = "dsGear"; g.textContent = "⚙︎"; g.title = "Sync settings"; g.setAttribute("aria-label", "Sync settings"); g.addEventListener("click", setupSheet); rb.parentNode.insertBefore(g, rb); }
+    if (rb && !document.getElementById("dsGear")) { const g = rb.cloneNode(false); g.id = "dsGear"; g.textContent = "⚙︎"; g.style.fontSize = "24px"; g.title = "Sync settings"; g.setAttribute("aria-label", "Sync settings"); g.addEventListener("click", setupSheet); rb.parentNode.insertBefore(g, rb); }
     document.addEventListener("click", e => { if (!ready() && e.target.closest && e.target.closest("#syncBtn")) { e.preventDefault(); e.stopImmediatePropagation(); setupSheet(); } }, true);
     if (pill) { pill.style.cursor = "pointer"; pill.setAttribute("role", "button"); pill.title = "Sync settings"; pill.addEventListener("click", setupSheet); }
     if (!ready() && !ls.get("dsSync.hinted2", false)) { ls.set("dsSync.hinted2", true); setTimeout(() => alertBox("Tip: tap ⚙︎ at the top to set up sync with your other devices."), 1500); }

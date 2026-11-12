@@ -87,7 +87,16 @@ ol.tl{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px}
 .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--muted)}
 .chip{--h:180;display:inline-block;padding:2px 8px;border-radius:999px;font-size:12.5px;font-weight:600;background:hsl(var(--h) 40% var(--chip-l));color:hsl(var(--h) 55% var(--chip-fg-l));max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tag{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:6px}
-.tag.came{background:var(--came-soft);color:var(--came)} .tag.done{background:var(--accent-soft);color:var(--accent)} .tag.skip{background:var(--sunk);color:var(--muted)}
+.tag.came{background:var(--came-soft);color:var(--came)} .tag.done{background:var(--accent-soft);color:var(--accent)} .tag.skip{background:var(--sunk);color:var(--muted)} .tag.act{background:#fdecc8;color:#8a5a00}
+.seg.st4{grid-template-columns:repeat(4,1fr)}
+details.sfold{display:block;min-width:0}
+details.sfold>summary{list-style:none;cursor:pointer;display:flex;gap:8px;align-items:center;font-size:12px;font-weight:650;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:4px 0;min-height:36px}
+details.sfold>summary::-webkit-details-marker{display:none}
+details.sfold>summary::before{content:"▸";font-size:20px;line-height:1;width:34px;height:34px;display:inline-grid;place-items:center;border:1px solid var(--line);border-radius:9px;flex:none;color:var(--text);background:var(--bg)}
+details.sfold[open]>summary::before{content:"▾"}
+details.sfold>summary .pv{text-transform:none;letter-spacing:0;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+details.sfold>.fbody{display:grid;gap:12px;padding:6px 0 4px}
+details.sfold>.fbody>.field>span:first-child{display:none}
 .content{font-size:15px;overflow-wrap:anywhere}
 .was{font-size:13px;color:var(--muted);text-decoration:line-through;overflow-wrap:anywhere}
 .cmt{font-size:13.5px;color:var(--muted);font-style:italic;overflow-wrap:anywhere}
@@ -183,6 +192,8 @@ select.wide{width:100%;font-family:var(--f-body)}
 .chip.pomo{background:var(--accent);color:var(--accent-ink)}
 .chip.brk{background:var(--accent-soft);color:var(--accent)}
 .chip.rst{background:color-mix(in srgb,var(--good) 18%,var(--surface));color:var(--good)}
+.chip.mvt{background:color-mix(in srgb,#e8710a 16%,var(--surface));color:#b45309}
+.item.k-move .card{background:color-mix(in srgb,#e8710a 5%,var(--surface))}
 .chip.intr{background:var(--came-soft);color:var(--came)}
 .item.k-restore .card{background:color-mix(in srgb,var(--good) 6%,var(--surface))}
 .item.k-interrupted .card{border-style:dashed}
@@ -263,6 +274,10 @@ details.prios[open]>summary .psm{display:none}
 .pkt small{font-weight:400}
 .pkb{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
 .pkb button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 10px;font-size:13px;min-height:32px}
+.pkb .pkmv{margin-left:auto;display:flex;gap:4px}
+.pkb .pkmv button{border:0;background:none;font-size:17px;min-width:32px;padding:0 4px}
+.pkb .pkmv button:disabled{opacity:.3}
+.pkb .pkmv + .x{margin-left:0}
 .pkb .x{border:0;background:none;color:var(--muted);font-size:18px;margin-left:auto;padding:0 6px}
 .remopts{display:grid;gap:8px;margin-top:12px}
 .remopts .btn{display:grid;gap:2px;text-align:left;text-decoration:none;color:inherit;padding:10px 12px}
@@ -318,6 +333,9 @@ button.time:hover b{color:var(--accent)}
 .small .it .topomo{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;font-size:12.5px;padding:4px 9px;min-height:30px;flex:none;white-space:nowrap}
 .small .it .topomo.on{border-color:var(--accent);color:var(--accent)}
 .pomolist{display:grid;gap:8px;margin-top:12px}
+.xbl{display:grid;gap:14px;margin-top:12px}
+.xbl select,.xbl input[type=text]{width:100%}
+.extra-t .tstate{margin-top:6px}
 .pomolist button{display:flex;justify-content:space-between;gap:10px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;font-size:15px;min-height:46px}
 .pomolist button small{color:var(--muted);font-size:12.5px}
 .pomolist button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
@@ -405,7 +423,10 @@ body.v-backlog .daynav{display:none}
 .kghost{position:fixed;z-index:40;pointer-events:none;box-shadow:0 12px 30px rgba(0,0,0,.25);transform:rotate(1.5deg);opacity:.95}
 .drop-before{box-shadow:0 -3px 0 0 var(--accent)}
 .drop-after{box-shadow:0 3px 0 0 var(--accent)}
-.drop-into{outline:2px solid var(--accent);outline-offset:1px}
+.drop-into{outline:2px solid var(--accent);outline-offset:1px;box-shadow:inset 24px 0 0 -18px var(--accent)}
+.drop-before.drop-up{box-shadow:-14px -3px 0 0 var(--came)} .drop-after.drop-up{box-shadow:-14px 3px 0 0 var(--came)}
+.drop-no{outline:2px dashed var(--bad);outline-offset:1px}
+#bdlbl{position:fixed;z-index:41;pointer-events:none;max-width:220px;background:var(--ink);color:var(--surface);font-size:12.5px;line-height:1.3;padding:6px 9px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .kgrp small{font-weight:500;color:var(--muted)}
 .aibox{display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
 .aibox textarea{min-height:52px}
@@ -562,11 +583,12 @@ const DEFAULT_SETTINGS = {
   long:["9D breathwork reset","Extended Yoga Nidra (45 min)","Extended Joe Dispenza meditation: energy centres","Walking meditation","Go into nature for a walk"],
   routine:["9D morning breath 9 min","JD morning meditation 23 min","JD new potentials breath 7 min","JD meditation 15 min","JD new potentials meditation 43 min","Affirmations 5 min","Stretch 10 min"],
   small:["Check & answer messages","Work communications","Phone calls","Email inbox","Reminders for today","Calendar: today and next week"],
+  move:["Running","Swimming","Dancing","Yoga","Walk"],
   restore:["Slow morning","Beach","Time with people","Did nothing, just rested","Nap","Walk in nature","Reading for fun"],
   interrupt:["Power cut","Internet down","Unexpected visitor","Errand that couldn't wait","Feeling unwell"],
   topics:["Planning & alignment","Priority tasks","Deep work","AI","Problem solving","Fun","Admin & email","Creative","Learning"]
 };
-const LIST_NAMES = {five:"5-minute breaks", ten:"10-minute breaks", fifteen:"15-minute breaks", long:"Long breaks (45 min to 1 h)", routine:"Morning routine", small:"Smaller optional tasks", restore:"Restore / off", interrupt:"Interruptions", topics:"Pomodoro topics"};
+const LIST_NAMES = {five:"5-minute breaks", ten:"10-minute breaks", fifteen:"15-minute breaks", long:"Long breaks (45 min to 1 h)", routine:"Morning routine", small:"Smaller optional tasks", move:"Movement & exercise", restore:"Restore / off", interrupt:"Interruptions", topics:"Pomodoro topics"};
 const BASE_TYPES = ["Wake up","Joe Dispenza breath & meditation","Pomodoro","Break","Long break","Breakfast","Lunch","Dinner","Movement","Calls & email","Admin","Coaching session","Facilitation prep","Walk","Reading","Family","Wind down"];
 const ALL_DURS = [5,10,15,20,30,45,60,90];
 function mkTask(name, est){ return {id:uid(), name:name||"", est:est ?? null, actual:null, outcome:""}; }
@@ -874,7 +896,7 @@ function durRow(prefix, f, r, val, emptyLabel){
   return `<div class="trow"><button type="button" class="step" data-act="bump" data-f="${f}" data-v="-5" data-id="${r.id}" aria-label="5 minutes less">−5</button>${wbtn({kind:"dur", f, id:r.id, val, title: f === "planDur" ? "Allotted time" : "Actual time", empty: emptyLabel})}<button type="button" class="step" data-act="bump" data-f="${f}" data-v="5" data-id="${r.id}" aria-label="5 minutes more">+5</button></div>`;
 }
 function quickDur(field, val, r, list){
-  return `<div class="quick">${(list || [5,10,15,20,25,30,45,60,90]).map(m => `<button type="button" data-act="setdur" data-f="${field}" data-v="${m}" data-id="${r.id}" aria-pressed="${val===m}">${fmtD(m)}</button>`).join("")}</div>`;
+  return `<div class="quick">${(list || [5,10,15,20,25,30,45,60,90,120,180,240]).map(m => `<button type="button" data-act="setdur" data-f="${field}" data-v="${m}" data-id="${r.id}" aria-pressed="${val===m}">${fmtD(m)}</button>`).join("")}</div>`;
 }
 function dotsHTML(r, f, label){
   let s = `<div class="dots" role="group" aria-label="${label}">`;
@@ -924,9 +946,14 @@ function pomoStartHTML(r){
   return `<div class="pomostart">${mine ? `<span class="hint">${T.done ? "This Pomodoro has finished." : "This Pomodoro is running: see the timer at the top."}</span>` : `<button class="btn primary" data-act="pomoStart" data-id="${r.id}">▶ Start 25-minute timer</button><span class="hint">Soft ticking, a bell at the end</span>`}</div>`;
 }
 function typeChips(r){
-  if (r.kind === "pomodoro") return chip("Pomodoro", "pomo") + (r.category ? chip(r.category) : "") + (T && T.rowId === r.id && !T.done ? `<span class="tag run">running</span>` : "");
-  if (r.kind === "routine") return chip(r.type || "Morning routine");
-  if (r.kind === "break") return chip(r.type || "Break", "brk");
+  const ic = KICON[r.kind] + " ";
+  if (r.kind === "move") return chip(ic + (r.type || "Movement & exercise"), "mvt");
+  if (r.kind === "meal") return chip(ic + (r.type || "Meal"));
+  if (r.kind === "comms") return chip(ic + (r.type || "Communication & logistics"));
+  if (r.kind === "block" && r.type) return chip(ic + r.type);
+  if (r.kind === "pomodoro") return chip("🍅 Pomodoro", "pomo") + (r.category ? chip(r.category) : "") + (T && T.rowId === r.id && !T.done ? `<span class="tag run">running</span>` : "");
+  if (r.kind === "routine") return chip("🔁 " + (r.type || "Morning routine"));
+  if (r.kind === "break") return chip("☕ " + (r.type || "Break"), "brk");
   if (r.kind === "restore") return chip("🌿 " + (r.type || "Restore / off"), "rst");
   if (r.kind === "interrupted") return chip("⚡ " + (r.type || "Interrupted"), "intr");
   return chip(r.type);
@@ -950,12 +977,12 @@ function headHTML(r, ctx){
       ? ((r.items||[]).length ? `<ul class="ritems">${r.items.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : "") + (r.content ? `<div class="cmt">${esc(r.content)}</div>` : "") || `<span class="cmt">${r.kind === "comms" ? "Tap to choose what to catch up on" : "Tap to choose your practices"}</span>`
       : r.kind === "pomodoro"
       ? (tasksPlanHTML(r, d) + (r.content ? `<div class="cmt">${esc(r.content)}</div>` : "") || `<span class="cmt">Tap to plan the session's tasks</span>`)
-      : `<div class="content">${esc(r.content) || `<span class="cmt">${r.kind === "break" ? "Tap to pick a break idea" : r.kind === "restore" ? "Tap to note how you restored" : r.kind === "interrupted" ? "Tap to note what interrupted the day" : "Tap to add what this block holds"}</span>`}</div>`;
+      : `<div class="content">${esc(r.content) || `<span class="cmt">${r.kind === "break" ? "Tap to pick a break idea" : r.kind === "move" ? "Tap to pick what you did" : r.kind === "restore" ? "Tap to note how you restored" : r.kind === "interrupted" ? "Tap to note what interrupted the day" : "Tap to add what this block holds"}</span>`}</div>`;
     const ps = planRows(d), nx = ps[ps.indexOf(r)+1], ov = nx ? planEnd(r) - nx.planStart : 0;
     return `<div class="meta">${typeChips(r)}<span class="num">${fmtD(r.planDur)}</span>${r.fixed ? `<span class="tag skip">fixed time</span>` : ""}${ov > 0 ? `<span class="tag warn">overlaps next by ${ov} min</span>` : ""}</div>${body}${r.lastNote ? `<div class="last">Last time: ${esc(r.lastNote)}</div>` : ""}`;
   }
   const a = ctx[r.id];
-  const tag = r.inserted ? `<span class="tag came">Came up</span>` : r.status === "done" ? `<span class="tag done">Done</span>` : r.status === "skipped" ? `<span class="tag skip">Skipped</span>` : "";
+  const tag = r.inserted ? `<span class="tag came">Came up</span>` : r.status === "done" ? `<span class="tag done">Done</span>` : r.status === "active" ? `<span class="tag act">In progress</span>` : r.status === "skipped" ? `<span class="tag skip">Skipped</span>` : "";
   const durTxt = r.inserted ? fmtD(a.dur) : (r.actualDur != null && r.actualDur !== r.planDur ? `${fmtD(r.actualDur)} <span style="opacity:.7">/ ${fmtD(r.planDur)} planned</span>` : fmtD(r.planDur));
   const rates = (r.energy || r.focus) ? `<div class="rates">${r.energy ? `<span>Energy ${minidots(r.energy)}</span>` : ""}${r.focus ? `<span>Focus ${minidots(r.focus)}</span>` : ""}</div>` : "";
   let body;
@@ -968,21 +995,29 @@ function headHTML(r, ctx){
   return `<div class="meta">${actChips(r)}<span class="num">${durTxt}</span>${tag}</div>${body}${r.comments ? `<div class="cmt">${esc(r.comments)}</div>` : ""}${rates}`;
 }
 
-const KINDS = [["block","Block"],["routine","Routine"],["pomodoro","Pomodoro"],["break","Break"],["meal","Meal"],["comms","Comms & logistics"],["restore","Restore / off"],["interrupted","Interrupted"]];
-const KIND_TYPE = {block:"", routine:"Morning routine", pomodoro:"Pomodoro", break:"Break", meal:"Meal", comms:"Communication & logistics", restore:"Restore / off", interrupted:"Interrupted"};
+const KICON = {block:"🧱", routine:"🔁", pomodoro:"🍅", break:"☕", meal:"🍽️", comms:"💬", move:"🏃‍♂️", restore:"🌿", interrupted:"⚡"};
+const KINDS = [["block","Block"],["routine","Routine"],["pomodoro","Pomodoro"],["break","Break"],["meal","Meal"],["comms","Comms & logistics"],["move","Movement & exercise"],["restore","Restore / off"],["interrupted","Interrupted"]].map(([k,l]) => [k, KICON[k] + " " + l]);
+const MOVE_DURS = [15,20,30,45,60,90,120,180];
+const KIND_TYPE = {block:"", routine:"Morning routine", pomodoro:"Pomodoro", break:"Break", meal:"Meal", comms:"Communication & logistics", move:"Movement & exercise", restore:"Restore / off", interrupted:"Interrupted"};
 const LONGK = k => k === "restore" || k === "interrupted";
 const LONG_DURS = [60,90,120,180,240,300];
 function longDur(field, val, r, start){ const st = start ?? r.planStart ?? 540; const rest = Math.max(60, snap5(22*60 - st)); return quickDur(field, val, r, LONG_DURS) + `<div class="quick" style="margin-top:5px"><button type="button" data-act="setdur" data-f="${field}" data-v="${rest}" data-id="${r.id}" aria-pressed="${val===rest}">Rest of the day (until 22:00 · ${fmtD(rest)})</button></div>`; }
-function longIdeas(r, field, k){ const key = k === "restore" ? "restore" : "interrupt"; const list = SET()[key] || []; const cur = splitIdeas(r[field]); const extra = cur.filter(x => !list.includes(x));
-  return `<div class="field">${fhead(k === "restore" ? "How you restored · tap all that apply" : "What interrupted the day · tap all that apply", key)}<div class="ideas">${[...list, ...extra].map(x => { const b = `<button type="button" data-act="pickIdea" data-f="${field}" data-id="${r.id}" data-v="${esc(x)}" aria-pressed="${cur.includes(x)}">${esc(x)}</button>`; return list.includes(x) ? libChip(key, x, b) : b; }).join("")}</div>${addInline(key, r, field, "New option, saved to the list")}</div>`; }
+function longIdeas(r, field, k){ const key = k === "restore" ? "restore" : k === "move" ? "move" : "interrupt"; const list = SET()[key] || []; const cur = splitIdeas(r[field]); const extra = cur.filter(x => !list.includes(x));
+  return `<div class="field">${fhead(k === "restore" ? "How you restored · tap all that apply" : k === "move" ? "What you did · tap all that apply" : "What interrupted the day · tap all that apply", key)}<div class="ideas">${[...list, ...extra].map(x => { const b = `<button type="button" data-act="pickIdea" data-f="${field}" data-id="${r.id}" data-v="${esc(x)}" aria-pressed="${cur.includes(x)}">${esc(x)}</button>`; return list.includes(x) ? libChip(key, x, b) : b; }).join("")}</div>${addInline(key, r, field, "New option, saved to the list")}</div>`; }
 const ek = r => r.actualKind || r.kind;
+/* Collapsible sections in the Actual editor; open/closed is remembered per section on this device */
+const FOLD_DEF = {turned:false, time:false, tasks:true};
+let FOLD = {}; try { FOLD = JSON.parse(localStorage.getItem("dayStructure.folds") || "{}") || {}; } catch(e){ FOLD = {}; }
+const foldOpen = k => (k in FOLD ? FOLD[k] : FOLD_DEF[k]);
+function fold(k, label, pv, inner){ return `<details class="sfold" data-fold="${k}" ${foldOpen(k) ? "open" : ""}><summary>${label} <span class="pv">${pv || ""}</span></summary><div class="fbody">${inner}</div></details>`; }
+document.addEventListener("toggle", e => { const el = e.target; if (el.dataset && el.dataset.fold) { FOLD[el.dataset.fold] = el.open; try { localStorage.setItem("dayStructure.folds", JSON.stringify(FOLD)); } catch(err){} } }, true);
 function kindRow(r, act){
   act = act || "kind"; const cur = act === "akind" ? ek(r) : r.kind;
   const label = act === "akind" ? "What it turned into" : "Kind of block";
   return `<div class="field"><span>${label}</span><div class="kindrow" role="group" aria-label="${label}">${KINDS.map(([k,l]) => `<button type="button" data-act="${act}" data-v="${k}" data-id="${r.id}" aria-pressed="${cur===k}">${l}</button>`).join("")}</div>${act === "akind" ? `<p class="hint">${r.actualKind ? `Planned as ${esc(planLabel(r))}. Tap that kind again to undo.` : "If you used this time for something else, pick what it became."}</p>` : ""}</div>`;
 }
 function planLabel(r){ return r.kind === "pomodoro" ? "Pomodoro" + (r.category ? " · " + r.category : "") : (r.type || KIND_TYPE[r.kind] || "Block"); }
-function actChips(r){ return r.actualKind ? chip(r.actualType || KIND_TYPE[r.actualKind] || "Block", r.actualKind === "break" ? "brk" : r.actualKind === "pomodoro" ? "pomo" : r.actualKind === "restore" ? "rst" : r.actualKind === "interrupted" ? "intr" : "") + `<span class="tag was">planned: ${esc(planLabel(r))}</span>` : typeChips(r); }
+function actChips(r){ return r.actualKind ? chip(KICON[r.actualKind] + " " + (r.actualType || KIND_TYPE[r.actualKind] || "Block"), r.actualKind === "break" ? "brk" : r.actualKind === "pomodoro" ? "pomo" : r.actualKind === "restore" ? "rst" : r.actualKind === "interrupted" ? "intr" : r.actualKind === "move" ? "mvt" : "") + `<span class="tag was">planned: ${esc(planLabel(r))}</span>` : typeChips(r); }
 function commsActual(r){
   const lib = SET().small || []; const dn = r.doneItems || [];
   const all = [...new Set([...(r.items||[]), ...lib, ...dn])];
@@ -1046,7 +1081,7 @@ function overflowPomo(r, d){
 }
 function tasksPlanEditor(r){
   const sum = r.tasks.reduce((s,t) => s + (t.est||0), 0);
-  return `${pomoStartHTML(r)}<div class="field"><span>Tasks for the 25 minutes</span><div class="taskbox">${r.tasks.map((t,i) => `<div class="task" style="--lv:${t.lvl || 0}"><div class="row">
+  return `${pomoStartHTML(r)}<div class="field"><span>Tasks for the 25 minutes</span><div class="taskbox">${r.tasks.map((t,i) => `<div class="task ${t.outcome === "done" ? "is-done" : ""}" style="--lv:${t.lvl || 0}"><div class="row"><button type="button" class="cbox" data-act="tCheck" data-t="${t.id}" data-id="${r.id}" aria-pressed="${t.outcome === "done"}" aria-label="Done">✓</button>
       <input type="text" autocomplete="off" list="prios" id="tn-${t.id}" data-f="task" data-k="name" data-t="${t.id}" data-id="${r.id}" value="${esc(t.name)}" placeholder="Task ${i+1}"></div>
       ${t.from ? `<div class="from">↪ ${esc(t.from)}</div>` : ""}
       <div class="tstate">${wbtn({kind:"dur", f:"task", id:r.id, t:t.id, k:"est", val:t.est, empty:"est.", title:"Estimated time", max:60, cls:"sm"})}<span class="tmv"><button type="button" class="mv" data-act="tMove" data-t="${t.id}" data-id="${r.id}" aria-label="Move to another Pomodoro" title="Move to another Pomodoro">⇄</button><button type="button" class="mv" data-act="tUp" data-t="${t.id}" data-id="${r.id}" aria-label="Move task up" ${i === 0 ? "disabled" : ""}>↑</button><button type="button" class="mv" data-act="tDown" data-t="${t.id}" data-id="${r.id}" aria-label="Move task down" ${i === r.tasks.length - 1 ? "disabled" : ""}>↓</button><button type="button" class="x" data-act="rmTask" data-t="${t.id}" data-id="${r.id}" aria-label="Remove task">×</button></span></div></div>`).join("")}</div></div>
@@ -1069,15 +1104,19 @@ function tasksActualEditor(r, d){
       </div>
       <div class="tdur"><div><span>Estimate</span>${wbtn({kind:"dur", f:"task", id:r.id, t:t.id, k:"est", val:t.est, empty:"–", title:"Estimated time", max:60, cls:"sm"})}</div><div><span>Took</span>${wbtn({kind:"dur", f:"task", id:r.id, t:t.id, k:"actual", val:t.actual, empty:"–", title:"Time it took", max:90, cls:"sm"})}</div></div>
       <input type="text" class="tnote" autocomplete="off" id="tc-${t.id}" data-f="task" data-k="note" data-t="${t.id}" data-id="${r.id}" value="${esc(t.note||"")}" placeholder="Notes on this task"></div>`;
-  return `${pomoStartHTML(r)}<div class="field"><span>Tasks for this session</span><div class="taskbox">${tasks.map(taskHTML).join("") || `<p class="hint">No tasks yet. Add what you plan to do in these 25 minutes.</p>`}
+  return `${pomoStartHTML(r)}<details class="sfold" data-fold="tasks" ${foldOpen("tasks") ? "open" : ""}><summary>Tasks for this session <span class="pv">${tasks.length ? `${nDone}/${tasks.length} done${est ? " · est. " + est + " min" : ""}` : "none yet"}</span></summary><div class="fbody"><div class="field"><div class="taskbox">${tasks.map(taskHTML).join("") || `<p class="hint">No tasks yet. Add what you plan to do in these 25 minutes.</p>`}
     ${r.extras.map(x => `<div class="task extra-t">
       <div class="row"><input type="text" autocomplete="off" id="xn-${x.id}" data-f="extra" data-k="name" data-t="${x.id}" data-id="${r.id}" value="${esc(x.name)}" placeholder="Extra task I ended up doing">${wbtn({kind:"dur", f:"extra", id:r.id, t:x.id, k:"actual", val:x.actual, empty:"–", title:"Time it took", max:90, cls:"sm"})}<button type="button" class="x" data-act="rmExtra" data-t="${x.id}" data-id="${r.id}" aria-label="Remove">×</button></div>
-      <input type="text" autocomplete="off" id="xw-${x.id}" data-f="extra" data-k="why" data-t="${x.id}" data-id="${r.id}" value="${esc(x.why)}" placeholder="Why did it come in?"></div>`).join("")}
+      <input type="text" autocomplete="off" id="xw-${x.id}" data-f="extra" data-k="why" data-t="${x.id}" data-id="${r.id}" value="${esc(x.why)}" placeholder="Why did it come in?">
+      ${x.bl && blGet(x.bl) ? `<div class="from">↪ Backlog · ${esc(blPath(blGet(x.bl)) ? blPath(blGet(x.bl)) + " › " : "")}${esc(blGet(x.bl).title)} <span class="hint">(${BCOL[blGet(x.bl).col] ? BCOL[blGet(x.bl).col].e + " " + BCOL[blGet(x.bl).col].l : ""})</span></div>` : ""}${x.carriedTo ? `<div class="from">→ moved to the ${esc(x.carriedLabel || "next")} Pomodoro</div>` : ""}
+      <div class="tstate"><button type="button" data-act="xToBl" data-t="${x.id}" data-id="${r.id}" aria-pressed="${!!(x.bl && blGet(x.bl))}">${x.bl && blGet(x.bl) ? "✎ Backlog item" : "＋ Backlog / project…"}</button>
+        <button type="button" data-act="xCarry" data-t="${x.id}" data-id="${r.id}" aria-pressed="${!!x.carriedTo}" ${!nx && !x.carriedTo ? "disabled" : ""} title="${nx ? "Copy to the Pomodoro at " + fmtT(nx.planStart) : "No later Pomodoro today"}">→ Next Pomodoro</button>
+        <button type="button" data-act="xToday" data-t="${x.id}" data-id="${r.id}" aria-pressed="${!!(x.bl && (d.picks || []).some(p => p.bl === x.bl))}">☀︎ Today's list</button></div></div>`).join("")}
     </div>
     ${r.overtime ? `<p class="hint" style="color:var(--came)">Worked ${r.overtime} min past the 25 minutes.</p>` : ""}
     ${tasks.length ? `<div class="psum"><span><b>${nDone}/${tasks.length}</b> done</span><span>Estimated <b>${est} min</b></span><span>Took <b>${act} min</b></span>${est && act ? `<span>${act > est ? "+" : ""}${act - est} min vs estimate</span>` : ""}</div>` : ""}</div>
     ${smallChips(r, d)}
-    <div class="btnrow"><button class="btn" data-act="addTask" data-id="${r.id}">+ Task for this session</button><button class="btn came" data-act="addExtra" data-id="${r.id}">+ Extra task I ended up doing</button></div>
+    <div class="btnrow"><button class="btn" data-act="addTask" data-id="${r.id}">+ Task for this session</button><button class="btn came" data-act="addExtra" data-id="${r.id}">+ Extra task I ended up doing</button></div></div></details>
     <div class="field"><span>Interruptions</span><div class="tally"><button type="button" data-act="intr" data-v="-1" data-id="${r.id}" aria-label="One less">−</button><b>${r.interrupts||0}</b><button type="button" data-act="intr" data-v="1" data-id="${r.id}" aria-label="One more">+</button><span class="hint">Tap + each time something pulls you out</span></div></div>`;
 }
 
@@ -1090,13 +1129,13 @@ function planEditor(r, d){
       <div class="field"><span>Start time</span>${timeRow("planStart", r, r.planStart, "Start time")}</div>
       <div class="field"><span>Allotted</span>${durRow("pd-" + r.id, "planDur", r, r.planDur, null)}</div>
     </div>
-    ${isBreak ? `<div class="field"><span>Choose the length</span>${quickDur("planDur", r.planDur, r, choices)}</div>` : LONGK(r.kind) ? `<div class="field"><span>Choose the length</span>${longDur("planDur", r.planDur, r)}</div>` : quickDur("planDur", r.planDur, r)}
+    ${isBreak ? `<div class="field"><span>Choose the length</span>${quickDur("planDur", r.planDur, r, choices)}</div>` : LONGK(r.kind) ? `<div class="field"><span>Choose the length</span>${longDur("planDur", r.planDur, r)}</div>` : r.kind === "move" ? `<div class="field"><span>Choose the length</span>${quickDur("planDur", r.planDur, r, MOVE_DURS)}</div>` : quickDur("planDur", r.planDur, r)}
     <p class="hint">Changing the time moves every block after it, up to the next block with a fixed time.</p>
     ${taskTimerHTML(r, d)}
     ${r.kind === "pomodoro" ? topicSel(r) + tasksPlanEditor(r) + `<label class="field"><span>Note</span><input type="text" autocomplete="off" id="pc-${r.id}" data-f="content" data-id="${r.id}" value="${esc(r.content)}" placeholder="Optional reminder for this session"></label>`
-      : `${r.kind === "break" || LONGK(r.kind) ? "" : `<label class="field"><span>Type of doing</span><input type="text" autocomplete="off" list="types" id="pt-${r.id}" data-f="type" data-id="${r.id}" value="${esc(r.type)}" placeholder="e.g. Deep work"></label>`}
+      : `${r.kind === "break" || LONGK(r.kind) || r.kind === "move" ? "" : `<label class="field"><span>Type of doing</span><input type="text" autocomplete="off" list="types" id="pt-${r.id}" data-f="type" data-id="${r.id}" value="${esc(r.type)}" placeholder="e.g. Deep work"></label>`}
          ${r.kind === "break" ? ideasHTML(r, "content", r.planDur) : ""}
-         ${LONGK(r.kind) ? longIdeas(r, "content", r.kind) : ""}
+         ${LONGK(r.kind) || r.kind === "move" ? longIdeas(r, "content", r.kind) : ""}
          ${r.kind === "routine" || r.kind === "comms" ? routinePicker(r, "plan") : ""}
          <label class="field"><span>${r.kind === "break" ? "Break activity" : "Content"}</span><textarea id="pc-${r.id}" data-f="content" data-id="${r.id}" rows="2" placeholder="${r.kind === "break" ? "Pick an idea above or write your own" : "What this block holds"}">${esc(r.content)}</textarea></label>`}
     <label class="check"><input type="checkbox" id="pf-${r.id}" data-f="fixed" data-id="${r.id}" ${r.fixed ? "checked" : ""}> Fixed time (a call, a session): other changes don't move it</label>
@@ -1113,27 +1152,29 @@ function actualEditor(r, d, ctx){
   const choices = r.choices || (isBreak ? choicesFor(r.planDur || a.dur) : null);
   return `<div class="editor">
     ${r.inserted ? `${kindRow(r)}
-      ${r.kind === "break" || LONGK(r.kind) ? "" : `<label class="field"><span>Type of doing</span><input type="text" autocomplete="off" list="types" id="at-${r.id}" data-f="type" data-id="${r.id}" value="${esc(r.type)}" placeholder="e.g. Unplanned call"></label>`}
+      ${r.kind === "break" || LONGK(r.kind) || r.kind === "move" ? "" : `<label class="field"><span>Type of doing</span><input type="text" autocomplete="off" list="types" id="at-${r.id}" data-f="type" data-id="${r.id}" value="${esc(r.type)}" placeholder="e.g. Unplanned call"></label>`}
       ${r.kind === "pomodoro" ? topicSel(r) : ""}
       ${r.kind === "break" ? ideasHTML(r, "content", a.dur) : ""}
       ${LONGK(r.kind) ? `<div class="field"><span>Length</span>${longDur("actualDur", r.actualDur, r, a.start)}</div>` + longIdeas(r, "content", r.kind) : ""}
+      ${r.kind === "move" ? `<div class="field"><span>Length</span>${quickDur("actualDur", r.actualDur, r, MOVE_DURS)}</div>` + longIdeas(r, "content", "move") : ""}
       ${r.kind === "pomodoro" ? "" : `<label class="field"><span>What came up</span><textarea id="ac-${r.id}" data-f="content" data-id="${r.id}" rows="2" placeholder="What happened">${esc(r.content)}</textarea></label>`}`
-    : `<div class="seg" role="group" aria-label="Status">
-        ${[["todo","Not yet"],["done","Done"],["skipped","Skipped"]].map(([k,l]) => `<button type="button" data-act="status" data-v="${k}" data-id="${r.id}" aria-pressed="${st===k}">${l}</button>`).join("")}
+    : `<div class="seg st4" role="group" aria-label="Status">
+        ${[["todo","Not yet"],["active","In progress"],["done","Done"],["skipped","Skipped"]].map(([k,l]) => `<button type="button" data-act="status" data-v="${k}" data-id="${r.id}" aria-pressed="${st===k}">${l}</button>`).join("")}
       </div>
       <p class="hint">Planned: ${fmtT(r.planStart)} · ${fmtD(r.planDur)}${r.kind === "pomodoro" ? (r.category ? " · " + esc(r.category) : "") : " · " + esc(r.content || "no content")}</p>
-      ${kindRow(r, "akind")}`}
+      ${fold("turned", "What it turned into", r.actualKind ? esc(r.actualType || KIND_TYPE[r.actualKind] || "Block") : "as planned", kindRow(r, "akind"))}`}
     ${isBreak ? breakStartHTML(r) : ""}
     ${isBreak && !r.inserted ? `<div class="field"><span>How long the break was</span>${quickDur("actualDur", r.actualDur ?? r.planDur, r, choices)}</div>` : ""}
-    <div class="grid2">
+    ${fold("time", "Actual time", `${fmtD(a.dur)} · ${fmtT(a.start)}–${fmtT(a.end)}`, `<div class="grid2">
       <div class="field"><span>Actual time</span>${durRow("ad-" + r.id, "actualDur", r, r.actualDur, r.inserted ? null : "as planned (" + (r.planDur ?? 0) + ")")}</div>
       <div class="field"><span>Started at</span>${timeRow("actualStart", r, r.actualStart ?? a.start, "Started at")}</div>
     </div>
-    <p class="hint">${r.actualStart != null || r.actGap ? `${r.actGap ? `${r.actGap} min pause before this block.` : "Start set by hand."} <button class="btn ghost" style="min-height:0;padding:2px 6px" data-act="clearStart" data-id="${r.id}">Use calculated time</button>` : `Start follows the blocks before. Change it and this block's time shrinks or grows so it still ends at ${fmtT(a.end)}; change the duration and everything after moves.`}</p>
+    <p class="hint">${r.actualStart != null || r.actGap ? `${r.actGap ? `${r.actGap} min pause before this block.` : "Start set by hand."} <button class="btn ghost" style="min-height:0;padding:2px 6px" data-act="clearStart" data-id="${r.id}">Use calculated time</button>` : `Start follows the blocks before. Change it and this block's time shrinks or grows so it still ends at ${fmtT(a.end)}; change the duration and everything after moves.`}</p>`)}
     ${taskTimerHTML(r, d)}
     ${K === "pomodoro" && !r.actualKind ? tasksActualEditor(r, d) : ""}
     ${K === "comms" ? commsActual(r) : K === "routine" ? routinePicker(r, "actual") : ""}
     ${!r.inserted && K === "break" ? ideasHTML(r, "revised", r.actualDur ?? r.planDur) : ""}
+    ${!r.inserted && K === "move" ? `<div class="field"><span>How long it was</span>${quickDur("actualDur", r.actualDur ?? r.planDur, r, MOVE_DURS)}</div>` + longIdeas(r, "revised", "move") : ""}
     ${!r.inserted && LONGK(K) ? `<div class="field"><span>How long it was</span>${longDur("actualDur", r.actualDur ?? r.planDur, r, a.start)}</div>` + longIdeas(r, "revised", K) : ""}
     ${r.inserted || (r.kind === "pomodoro" && !r.actualKind) ? "" : `<label class="field"><span>${K === "break" ? "What you actually did" : "Revised content (what you actually did)"}</span><textarea id="ar-${r.id}" data-f="revised" data-id="${r.id}" rows="2" placeholder="Leave empty if it went as planned">${esc(r.revised)}</textarea></label>`}
     ${r.kind === "pomodoro" && !r.actualKind ? `<details class="cmtbox field" data-cmt="${r.id}" ${S.cmtOpen && S.cmtOpen[r.id] ? "open" : ""}><summary>Comments <span class="pv">${esc((r.comments||"").split("\n")[0])}</span></summary><textarea id="am-${r.id}" data-f="comments" data-id="${r.id}" rows="4" placeholder="How it went">${esc(r.comments)}</textarea></details>`
@@ -1195,13 +1236,14 @@ function pkNode(d, it, dep){
   if (kids.length && !fold) h += kids.map(k => pkNode(d, k, dep + 1)).join("");
   return h;
 }
+function pkPeers(d, p){ return (d.picks || []).filter(x => (x.main ?? null) === (p.main ?? null) && (p.main != null || !!x.extra === !!p.extra)); }
 function pkCard(d, p){
   const it = p.bl ? blGet(p.bl) : null, mainB = p.main != null && (d.prioBl || [])[p.main], cx = p.extra ? "" : it ? (mainB && blRoot(it).id === mainB ? blPath(it).split(" › ").slice(1).join(" › ") : blPath(it)) : (p.ctx || "");
   const body = it ? pkNode(d, it, 0) : `<div class="pn2 ${p.done ? "done" : ""}" style="--lv:0"><button type="button" class="cbox" data-act="pkTickP" data-k="${p.id}" aria-pressed="${!!p.done}" aria-label="Done">✓</button><span class="pkn">${esc(p.name)}</span></div>${p.note ? `<div class="pnote">${esc(p.note)}</div>` : ""}`;
   const open = it ? !isClosed(it) : !p.done, pr = d.priorities || [];
   return `<div class="pk">${cx ? `<small class="hint pkc">↳ ${esc(cx)}</small>` : ""}${body}
     <div class="pkb"><span class="lbl">Main</span>${[0,1,2].map(i => `<button type="button" data-act="pickTo" data-k="${p.id}" data-v="${i}" aria-pressed="${p.main === i}" title="${p.main === i ? "Back to the items to sort" : esc(pr[i] ? "Under main task " + (i + 1) + ": " + pr[i] : "Make it main task " + (i + 1))}">${i + 1}</button>`).join("")}
-      ${open ? `<button type="button" data-act="pkTmr" data-k="${p.id}" title="Move to tomorrow, to sort there">→ Tomorrow</button>` : ""}<button type="button" class="x" data-act="pickRm" data-k="${p.id}" aria-label="Take ${esc(p.name)} off today">×</button></div></div>`;
+      ${open ? `<button type="button" data-act="pkTmr" data-k="${p.id}" title="Move to tomorrow, to sort there">→ Tomorrow</button>` : ""}${(() => { const pe = pkPeers(d, p), k = pe.indexOf(p); return pe.length > 1 ? `<span class="pkmv"><button type="button" class="mv" data-act="pickMv" data-k="${p.id}" data-v="-1" aria-label="Move up" ${k <= 0 ? "disabled" : ""}>↑</button><button type="button" class="mv" data-act="pickMv" data-k="${p.id}" data-v="1" aria-label="Move down" ${k >= pe.length - 1 ? "disabled" : ""}>↓</button></span>` : ""; })()}<button type="button" class="x" data-act="pickRm" data-k="${p.id}" aria-label="Take ${esc(p.name)} off today">×</button></div></div>`;
 }
 let PRIO_OPEN = true; try { PRIO_OPEN = localStorage.getItem("dayStructure.prioOpen") !== "0"; } catch(e){}
 function qMark(txt, q){ const t = String(txt || ""), i = t.toLowerCase().indexOf(q); if (i < 0) return esc(t.length > 90 ? t.slice(0, 88) + "…" : t); const a = Math.max(0, i - 30), b = Math.min(t.length, i + q.length + 50); return (a ? "…" : "") + esc(t.slice(a, i)) + "<mark>" + esc(t.slice(i, i + q.length)) + "</mark>" + esc(t.slice(i + q.length, b)) + (b < t.length ? "…" : ""); }
@@ -1328,7 +1370,7 @@ function renderReview(d){
   const done = ps.filter(r => r.status === "done").length, skipped = ps.filter(r => r.status === "skipped").length;
   const changed = ps.filter(r => r.revised).length, came = d.rows.filter(r => r.inserted && !LONGK(ek(r)));
   const kindMin = k => d.rows.filter(r => r.status !== "skipped" && ek(r) === k).reduce((s2, r) => s2 + ctx[r.id].dur, 0);
-  const restMin = kindMin("restore"), intrMin = kindMin("interrupted");
+  const moveMin = kindMin("move"), restMin = kindMin("restore"), intrMin = kindMin("interrupted");
   const avg = k => { const v = d.rows.filter(r => r[k]).map(r => r[k]); return v.length ? (v.reduce((a,b)=>a+b,0)/v.length).toFixed(1) : "–"; };
   const over = ps.filter(r => r.status !== "skipped" && r.actualDur != null && !LONGK(ek(r))).reduce((s,r) => s + (r.actualDur - r.planDur), 0);
   const label = r => esc(r.kind === "pomodoro" ? "Pomodoro" + (r.category ? " · " + r.category : "") : (r.type || r.content));
@@ -1339,13 +1381,14 @@ function renderReview(d){
     const a = ctx[r.id];
     if (r.inserted) return `<li class="came"><div><span class="k">Plan</span><span class="hint">Not planned</span></div><div><span class="k">Came up · ${fmtT(a.start)} · ${fmtD(a.dur)}</span>${typeChips(r)} ${r.kind === "pomodoro" ? tasksActualHTML(r, d) : esc(r.content)}${r.comments ? `<div class="cmt">${esc(r.comments)}</div>` : ""}</div></li>`;
     const actTxt = r.status === "skipped" ? `<span class="hint">Skipped</span>` : `${r.actualKind ? chip(r.actualType || KIND_TYPE[r.actualKind]) + " " + esc([...(r.doneItems||[]), r.revised].filter(Boolean).join(" · ")) : r.kind === "pomodoro" ? tasksActualHTML(r, d) : esc(r.revised || r.content)}${r.comments ? `<div class="cmt">${esc(r.comments)}</div>` : ""}`;
-    return `<li><div><span class="k">Plan · ${fmtT(r.planStart)} · ${fmtD(r.planDur)}</span>${typeChips(r)} ${planTxt(r)}</div><div><span class="k">Actual · ${r.status === "skipped" ? "–" : fmtT(a.start) + " · " + fmtD(a.dur)}${r.status === "todo" ? " · not logged" : ""}</span>${actTxt}</div></li>`;
+    return `<li><div><span class="k">Plan · ${fmtT(r.planStart)} · ${fmtD(r.planDur)}</span>${typeChips(r)} ${planTxt(r)}</div><div><span class="k">Actual · ${r.status === "skipped" ? "–" : fmtT(a.start) + " · " + fmtD(a.dur)}${r.status === "todo" ? " · not logged" : r.status === "active" ? " · in progress" : ""}</span>${actTxt}</div></li>`;
   }).join("");
   return `<div class="stats">
       <div class="stat"><span>Planned</span><b>${fmtD(planned)}</b><small>${ps.length} blocks</small></div>
       <div class="stat"><span>Actual</span><b>${fmtD(actual)}</b><small>${over ? (over>0?"+":"") + over + " min over allotted" : "on allotted time"}</small></div>
       <div class="stat"><span>Done</span><b>${done}/${ps.length}</b><small>${changed} changed · ${skipped} skipped</small></div>
       <div class="stat"><span>Came up</span><b>${came.length}</b><small>${fmtD(came.reduce((s,r)=>s+ctx[r.id].dur,0))}</small></div>
+      ${moveMin ? `<div class="stat"><span>🏃‍♂️ Movement</span><b>${fmtD(moveMin)}</b><small>exercise and movement</small></div>` : ""}
       ${restMin ? `<div class="stat"><span>🌿 Restore / off</span><b>${fmtD(restMin)}</b><small>rest is part of the day</small></div>` : ""}
       ${intrMin ? `<div class="stat"><span>⚡ Interrupted</span><b>${fmtD(intrMin)}</b><small>outside your control</small></div>` : ""}
       <div class="stat"><span>Energy</span><b>${avg("energy")}</b><small>average of 5</small></div>
@@ -1474,6 +1517,7 @@ function setKind(r, k){
   r.kind = k;
   if (k === "comms") { if (!r.items) r.items = []; r.type = KIND_TYPE.comms; return; }
   if (k === "routine") { if (!r.items) r.items = []; if (!r.type || /breath|meditation|dispenza/i.test(r.type)) r.type = "Morning routine"; return; }
+  if (k === "move") { r.type = ""; return; }
   if (LONGK(k)) { r.type = ""; if ((r.planDur || 0) < 60) r.planDur = 60; return; }
   if (k === "pomodoro") { r.type = "Pomodoro"; if (!r.tasks.length) r.tasks = [mkTask(),mkTask(),mkTask()]; }
   else if (k === "break") { r.type = (r.planDur||0) >= 45 ? "Long break" : "Break"; }
@@ -1803,13 +1847,13 @@ function startBreak(){
   const i = d && pr ? d.rows.indexOf(pr) : -1, nb = i >= 0 ? d.rows[i + 1] : null; const isB = nb && ["break", "meal"].includes(nb.actualKind || nb.kind);
   const mins = isB ? (nb.actualDur ?? nb.planDur ?? 5) : 5;
   const over = t.doneAt ? Math.floor((Date.now() - t.doneAt) / 60000) : 0;
-  if (pr) { pr.overtime = over; if (pr.actualDur == null && over >= 3) pr.actualDur = snap5(pr.planDur + over); if (!pr.inserted && pr.status === "todo") pr.status = "done"; touch(t.date); }
+  if (pr) { pr.overtime = over; if (pr.actualDur == null && over >= 3) pr.actualDur = snap5(pr.planDur + over); if (!pr.inserted && (pr.status === "todo" || pr.status === "active")) pr.status = "done"; touch(t.date); }
   alarmStop(); audio();
   T = {mode:"break", rowId: isB ? nb.id : t.rowId, pomoId: t.rowId, date: t.date, label: (isB ? (nb.type || "Break") : "Break") + " · " + mins + " min", ms: mins * 60000, endAt: Date.now() + mins * 60000, left: mins * 60000, running: true, done: false, sound: t.sound};
   saveT(); wakeOn(); runTimer(); render(); toast(`${mins}-minute break${over ? ` (${over} min over noted)` : ""}`);
 }
 function timerStart(r){
-  audio();
+  audio(); if (r && !r.inserted && (r.status || "todo") === "todo") { r.status = "active"; touch(S.date); }
   const lbl = "Pomodoro" + (r.category ? " · " + r.category : "");
   T = {rowId:r.id, date:S.date, label:lbl, endAt:Date.now() + POMO_MS, left:POMO_MS, running:true, done:false, sound:(T && T.sound) || (function(){ try { return localStorage.getItem("dayStructure.sound") || "tick"; } catch(e){ return "tick"; } })()};
   saveT(); wakeOn(); runTimer(); render(); toast("25 minutes. Focus.");
@@ -1821,6 +1865,17 @@ document.addEventListener("pointerdown", () => { if (mediaEl && mediaEl.paused &
 
 document.addEventListener("toggle", e => { if (e.target.id === "ideasPanel") S.ideasOpen = e.target.open; }, true);
 document.addEventListener("toggle", e => { const el = e.target; if (el.dataset && el.dataset.cmt) { S.cmtOpen = S.cmtOpen || {}; S.cmtOpen[el.dataset.cmt] = el.open; } }, true);
+/* Moving an item up/down keeps its arrow under the finger: the list moves around it */
+const MOVE_ACTS = new Set(["up","down","tUp","tDown","pickMv","blPrio","blEdge","pkUp","pkDown"]);
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-act]"); if (!el || !MOVE_ACTS.has(el.dataset.act)) return;
+  const keys = ["act","id","t","k","b","v"].filter(k => el.dataset[k] != null), sel = keys.map(k => `[data-${k}="${CSS.escape(el.dataset[k])}"]`).join("");
+  const y0 = el.getBoundingClientRect().top, ix = Math.max(0, [...document.querySelectorAll(sel)].indexOf(el)), pick = q => { const all = document.querySelectorAll(q); return all[Math.min(ix, all.length - 1)] || null; };
+  setTimeout(() => { let n = pick(sel);
+    if (!n || n.disabled) { const alt = el.dataset.act === "blEdge" ? null : el.dataset.v === "-1" ? "1" : el.dataset.v === "1" ? "-1" : null; const altAct = {up:"down",down:"up",tUp:"tDown",tDown:"tUp"}[el.dataset.act];
+      const s2 = altAct ? sel.replace(`[data-act="${el.dataset.act}"]`, `[data-act="${altAct}"]`) : alt ? sel.replace(`[data-v="${el.dataset.v}"]`, `[data-v="${alt}"]`) : null; if (s2) n = pick(s2) || n; }
+    if (n) window.scrollBy({top: n.getBoundingClientRect().top - y0, behavior: "instant"}); }, 0);
+}, true);
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-act]"); if (!el) {
     const tr = e.target.closest("tr[data-id]"); if (tr) { S.open = tr.dataset.id; location.hash = "#actual"; } return; }
@@ -1844,7 +1899,7 @@ document.addEventListener("click", e => {
     case "taskTimer": if (r) { const until = el.dataset.until != null ? Number(el.dataset.until) : null; const n = new Date(), m = n.getHours() * 60 + n.getMinutes() + n.getSeconds() / 60;
       const mins = until != null ? Math.max(1, Math.round(until - m)) : (r.timerMin ?? (S.view === "plan" ? r.planDur : (r.actualDur ?? r.planDur)) ?? 15); taskTimerFor(r, S.date, mins, until); } return;
     case "tPlus": if (T && T.mode === "task") { T.endAt = Math.max(Date.now(), T.endAt) + 5 * 60000; T.ms = Math.max(T.ms, 0) + 5 * 60000; T.done = false; T.running = true; T.doneAt = null; saveT(); wakeOn(); runTimer(); } return;
-    case "tTaskDone": { const t = T; if (t) { const d0 = S.days[t.date], pr = d0 && d0.rows.find(x => x.id === t.rowId); if (pr && !pr.inserted && pr.status === "todo") { pr.status = "done"; touch(t.date); } } alarmStop(); clearInterval(tickIv); noiseStop(); wakeOff(); T = null; saveT(); renderTimer(); render(); return; }
+    case "tTaskDone": { const t = T; if (t) { const d0 = S.days[t.date], pr = d0 && d0.rows.find(x => x.id === t.rowId); if (pr && !pr.inserted && (pr.status === "todo" || pr.status === "active")) { pr.status = "done"; touch(t.date); } } alarmStop(); clearInterval(tickIv); noiseStop(); wakeOff(); T = null; saveT(); renderTimer(); render(); return; }
     case "breakStart": if (r) { if (T && T.mode !== "break" && T.done && T.doneAt) { const d0 = S.days[T.date], pr = d0 && d0.rows.find(x => x.id === T.rowId); if (pr) { pr.overtime = Math.floor((Date.now() - T.doneAt) / 60000); touch(T.date); } } breakTimerFor(r, S.date); } return;
     case "tNext": { const nx = T && nextPomoFor(T); alarmStop(); if (nx) { S.date = T.date; T = null; timerStart(nx); } else { T = null; saveT(); renderTimer(); } return; }
     case "tStop": alarmStop(); clearInterval(tickIv); noiseStop(); wakeOff(); T = null; saveT(); renderTimer(); render(); return;
@@ -1880,6 +1935,17 @@ document.addEventListener("click", e => {
     case "rmTask": r.tasks = r.tasks.filter(t => t.id !== el.dataset.t); (d.small || []).forEach(x => { if (x.pomoTask === el.dataset.t) x.pomo = x.pomoTask = null; }); break;
     case "outcome": if (task) { if (task.outcome === "carried") { const tg = d.rows.find(x => x.id === task.carriedTo); if (tg) tg.tasks = tg.tasks.filter(x => x.id !== task.carriedId); task.carriedTo = task.carriedId = task.carriedLabel = null; } task.outcome = task.outcome === v ? "" : v; if (!r.inserted && r.status === "todo") r.status = "done"; } break;
     case "addExtra": r.extras.push({id:uid(), name:"", why:"", actual:null}); break;
+    case "xToBl": if (task) xToBlSheet(r, task); return;
+    case "xCarry": if (task) {
+      if (task.carriedTo) { const tg = d.rows.find(x => x.id === task.carriedTo); if (tg) tg.tasks = tg.tasks.filter(x => x.id !== task.carriedId); task.carriedTo = task.carriedId = task.carriedLabel = null; break; }
+      const nx = nextPomo(r, d); if (!nx) { toast("No later Pomodoro today: add one first"); return; }
+      const nt = mkTask(task.name, null); nt.from = "Came up in the " + fmtT(r.planStart) + " Pomodoro"; nt.note = task.why || ""; if (task.bl) nt.bl = task.bl;
+      nx.tasks = nx.tasks.filter(x => x.name || x.est); nx.tasks.push(nt); task.carriedTo = nx.id; task.carriedId = nt.id; task.carriedLabel = fmtT(nx.planStart);
+      toast("Added to the " + fmtT(nx.planStart) + " Pomodoro"); } break;
+    case "xToday": if (task) {
+      if (task.bl && (d.picks || []).some(p => p.bl === task.bl)) { d.picks = d.picks.filter(p => p.bl !== task.bl); toast("Taken off today's list"); break; }
+      if (!task.bl) { xToBlSheet(r, task, {today: true}); return; }
+      const it = blGet(task.bl); d.picks = d.picks || []; d.picks.push({id: uid(), bl: it.id, name: it.title, ctx: blPath(it), extra: true}); toast("On today's list, under Additional tasks taken on"); } break;
     case "rmExtra": r.extras = r.extras.filter(t => t.id !== el.dataset.t); break;
     case "swapReset": { r.status = "skipped"; const nr = BRK(60, [45,60,90]); nr.inserted = true; nr.planStart = null; nr.planDur = null; nr.actualDur = 60; nr.status = "done"; nr.choices = [15,30,45,60];
       d.rows.splice(d.rows.indexOf(r)+1, 0, nr); S.open = nr.id; toast("Pomodoro skipped. Pick a reset break."); break; }
@@ -1892,7 +1958,6 @@ document.addEventListener("click", e => {
         second.planStart = s0; first.planStart = planEnd(second) + gap; }
       d.rows[i] = other; d.rows[j] = r;
       if (S.view !== "plan") [r, other].forEach(x => { if (!x.fixed) { x.actGap = null; x.actualStart = null; } });
-      setTimeout(() => { const li = document.querySelector(`[data-row="${r.id}"]`); if (li) li.scrollIntoView({block:"nearest", behavior:"smooth"}); }, 30);
       break; }
     case "addBelow": { const nr = mkRow({planDur:30}); insertRows(d, r, [nr]); S.open = nr.id; break; }
     case "pomoBelow": { const items = [POMO("Priority tasks"), BRK(S.seqDur, choicesFor(S.seqDur))]; insertRows(d, r, items); S.open = items[0].id; toast(`Pomodoro and ${fmtD(S.seqDur)} break added`); break; }
@@ -1951,6 +2016,8 @@ document.addEventListener("click", e => {
     case "prioNote": { S.prioN = S.prioN || {}; S.prioN[el.dataset.k] = true; render(); setTimeout(() => { const n = $("#prion-" + el.dataset.k); if (n) n.focus(); }, 30); return; }
     case "pickAdd": { const it = S.backlog && S.backlog.items.find(x => x.id === v); if (!it) return; blPick(it, S.date); render(); toast("Added to the picks"); return; }
     case "pickRm": d.picks = (d.picks || []).filter(x => x.id !== el.dataset.k); break;
+    case "pickMv": { const p = (d.picks || []).find(x => x.id === el.dataset.k); if (!p) return; const pe = pkPeers(d, p), o = pe[pe.indexOf(p) + Number(v)]; if (!o) return;
+      const a = d.picks.indexOf(p), b = d.picks.indexOf(o); d.picks[a] = o; d.picks[b] = p; break; }
     case "pickTo": { const p = (d.picks || []).find(x => x.id === el.dataset.k); if (!p) return; const i = Number(v);
       if (p.main === i) { p.main = null; toast("Back to the items to sort"); break; }
       if (!p.bl && !(d.priorities[i] || "").trim()) { d.priorities[i] = p.name; d.prioN = d.prioN || ["", "", ""]; if (p.note) d.prioN[i] = p.note; if (d.prioMoved) d.prioMoved[i] = ""; if (d.prioDone) d.prioDone[i] = false; d.picks = d.picks.filter(x => x !== p); toast("Now main task " + (i + 1)); break; }
@@ -2025,7 +2092,7 @@ function csvCell(s){ s = String(s ?? ""); return /[",\n;]/.test(s) ? '"' + s.rep
 function buildCSV(d){
   const ctx = computeActual(d);
   const head = ["Date","Start time","Allotted time (min)","Actual start","Actual time needed (min)","Type of doing","Pomodoro topic","Content","Revised content","Comments","Energy (1-5)","Concentration (1-5)","What worked","What didn't","Status","Came up"];
-  const lines = d.rows.map(r => { const a = ctx[r.id]; return [d.date, r.inserted ? "" : fmtT(r.planStart), r.inserted ? "" : r.planDur, r.status === "skipped" ? "" : fmtT(a.start), r.status === "skipped" ? 0 : a.dur, r.kind === "pomodoro" ? "Pomodoro" : r.type, r.category, r.inserted && r.kind !== "pomodoro" ? "" : planText(r, d), actualText(r, d), r.comments, r.energy || "", r.focus || "", r.worked, r.didnt, r.inserted ? "came up" : r.status, r.inserted ? "yes" : ""].map(csvCell).join(","); });
+  const lines = d.rows.map(r => { const a = ctx[r.id]; return [d.date, r.inserted ? "" : fmtT(r.planStart), r.inserted ? "" : r.planDur, r.status === "skipped" ? "" : fmtT(a.start), r.status === "skipped" ? 0 : a.dur, r.kind === "pomodoro" ? "Pomodoro" : r.type, r.category, r.inserted && r.kind !== "pomodoro" ? "" : planText(r, d), actualText(r, d), r.comments, r.energy || "", r.focus || "", r.worked, r.didnt, r.inserted ? "came up" : r.status === "active" ? "in progress" : r.status, r.inserted ? "yes" : ""].map(csvCell).join(","); });
   return "﻿" + [head.join(","), ...lines].join("\n");
 }
 function buildMD(d){
@@ -2206,8 +2273,10 @@ function blCard(it, dep, vis){
     <div class="khead"><span class="grip" data-grip="${it.id}" aria-label="Drag to move" title="Drag to move">⠿</span><button type="button" class="ktitle" data-act="blOpen" data-b="${it.id}">${sub ? `<span class="kpar">↳ ${esc(sub)}</span>` : ""}<span class="kt">${it.parent ? "" : `<span class="rk">#${i + 1}</span>`}${ic ? `<span class="kic">${ic}</span>` : ""}${esc(it.title)}</span></button>${nk ? `<button type="button" class="ktog" data-act="blColl" data-b="${it.id}" aria-expanded="${!cl}" aria-label="${cl ? "Expand" : "Collapse"}" title="${cl ? "Show" : "Hide"} its ${nk} item${nk === 1 ? "" : "s"}">${cl ? "▸ " + nk : "▾"}</button>` : ""}</div>
     <div class="kmeta">${badges(it, !it.parent)}</div>
     <div class="kbtns">
+      <button type="button" data-act="blEdge" data-b="${it.id}" data-v="top" aria-label="Move to the very top" title="Very top" ${i <= 0 ? "disabled" : ""}>⤒</button>
       <button type="button" data-act="blPrio" data-b="${it.id}" data-v="-1" aria-label="Higher priority" title="${it.parent ? "Up within the project" : "Higher priority (its tasks move along)"}" ${i <= 0 ? "disabled" : ""}>↑</button>
       <button type="button" data-act="blPrio" data-b="${it.id}" data-v="1" aria-label="Lower priority" title="${it.parent ? "Down within the project" : "Lower priority (its tasks move along)"}" ${i >= peers.length - 1 ? "disabled" : ""}>↓</button>
+      <button type="button" data-act="blEdge" data-b="${it.id}" data-v="bottom" aria-label="Move to the very bottom" title="Very bottom" ${i >= peers.length - 1 ? "disabled" : ""}>⤓</button>
       <span class="sp"></span>
       <button type="button" data-act="blRemind" data-b="${it.id}" aria-label="Reminders" title="Reminders: add for today or search">🔔</button>
       <button type="button" data-act="blToday" data-b="${it.id}" aria-label="Add to today's picks" title="Add to today's picks">🍅</button>
@@ -2389,6 +2458,68 @@ function tMoveSheet(r, t){
     const grp = r.tasks.splice(k, m - k); tg.tasks = tg.tasks.filter(x => x.name || x.est); tg.tasks.push(...grp);
     const ids = new Set(grp.map(x => x.id)); (d.small || []).forEach(sm => { if (ids.has(sm.pomoTask)) sm.pomo = tg.id; });
     toast("Moved to the " + fmtT(tg.planStart) + " Pomodoro"); });
+}
+/* An extra task that came up in a Pomodoro becomes a backlog item: pick the column and a project (suggested by matching words) or make a new one */
+function blWords(t){ return new Set(String(t || "").toLowerCase().replace(/[^\p{L}\p{N} ]/gu, " ").split(/\s+/).filter(w => w.length > 2 && !["the","and","for","with","from","that","this","into","von","und","der","die","das"].includes(w))); }
+function xToBlSheet(r, x, o){
+  o = o || {}; const d = curDay(); if (!d) return; const B = BL();
+  const ex = x.bl && blGet(x.bl);
+  const projs = B.items.filter(it => !isClosed(it) && it.col !== "archive" && (!it.parent || !(blGet(it.parent) || {}).parent) && it.id !== (ex && ex.id));
+  const label = it => (it.parent ? blShort((blGet(it.parent) || {}).title || "") + " › " : "") + it.title;
+  const ws = blWords(x.name + " " + (x.why || ""));
+  const score = it => { const pw = blWords(it.title + " " + (it.tags || []).join(" ")); let n = 0; ws.forEach(w => { pw.forEach(q => { if (q === w || (w.length > 4 && (q.startsWith(w.slice(0, 5)) || w.startsWith(q.slice(0, 5))))) n++; }); }); return n; };
+  const sug = projs.map(it => [it, score(it)]).filter(a => a[1] > 0).sort((a, b) => b[1] - a[1] || (a[0].parent ? 1 : 0) - (b[0].parent ? 1 : 0)).slice(0, 4).map(a => a[0]);
+  let col = ex ? ex.col : "tackling", par = ex ? ex.parent : (sug[0] ? sug[0].id : null), newP = false, today = ex ? (d.picks || []).some(p => p.bl === ex.id) : !!o.today;
+  const nx = nextPomo(r, d); let toNext = !!x.carriedTo;
+  const sh = $("#sheet");
+  const draw = () => {
+    sh.innerHTML = `<div class="scrim" data-w="close"></div><div class="sheetbox tall" role="dialog" aria-modal="true" aria-label="Backlog item">
+    <div class="sheethead"><b>${ex ? "Backlog item" : "Make it a backlog item"}</b><div><button class="btn" data-w="close">Cancel</button><button class="btn primary" data-w="save">${ex ? "Save" : "Add"}</button></div></div>
+    <div class="xbl">
+    <label class="field"><span>Task</span><input type="text" id="xb-title" autocomplete="off" value="${esc(ex ? ex.title : x.name)}" placeholder="What is the task?"></label>
+    <div class="field"><span>Where on the board</span><div class="tstate">${BCOLS.filter(c => c[0] !== "archive").map(([k, l, e]) => `<button type="button" data-col="${k}" aria-pressed="${col === k}">${e} ${l}</button>`).join("")}</div></div>
+    <div class="field"><span>Is it part of a project?</span>
+      ${sug.length ? `<div class="hint" style="text-align:left;margin:0">Looks related to:</div><div class="tstate">${sug.map(it => `<button type="button" data-par="${it.id}" aria-pressed="${!newP && par === it.id}">${esc(label(it))}</button>`).join("")}</div>` : ""}
+      <select id="xb-par"><option value="">No project</option>${projs.map(it => `<option value="${it.id}" ${!newP && par === it.id ? "selected" : ""}>${esc(label(it))}</option>`).join("")}<option value="__new" ${newP ? "selected" : ""}>＋ New project…</option></select>
+      ${newP ? `<input type="text" id="xb-newp" autocomplete="off" placeholder="Name of the new project">` : ""}</div>
+    <div class="tstate">
+      <button type="button" data-w="today" aria-pressed="${today}">☀︎ Also on today's list</button>
+      ${nx || toNext ? `<button type="button" data-w="next" aria-pressed="${toNext}">→ Also in the ${nx ? fmtT(nx.planStart) : ""} Pomodoro</button>` : ""}</div>
+    </div></div>`;
+  };
+  draw(); sh.hidden = false;
+  const close = () => { sh.hidden = true; sh.innerHTML = ""; sh.onclick = sh.onchange = null; };
+  const keep = () => { const t = $("#xb-title"); if (t) x._t = t.value; const np = $("#xb-newp"); if (np) x._np = np.value; };
+  const restore = () => { const t = $("#xb-title"); if (t && x._t != null) t.value = x._t; const np = $("#xb-newp"); if (np && x._np != null) np.value = x._np; };
+  sh.onchange = e => { if (e.target.id === "xb-par") { keep(); newP = e.target.value === "__new"; par = newP ? null : (e.target.value || null); draw(); restore(); if (newP) { const np = $("#xb-newp"); if (np) np.focus(); } } };
+  sh.onclick = e => {
+    const c = e.target.closest("[data-col]"), pp = e.target.closest("[data-par]"), w = e.target.closest("[data-w]");
+    if (c) { keep(); col = c.dataset.col; draw(); restore(); return; }
+    if (pp) { keep(); newP = false; par = par === pp.dataset.par ? null : pp.dataset.par; draw(); restore(); return; }
+    if (!w) return; const k = w.dataset.w;
+    if (k === "today") { keep(); today = !today; draw(); restore(); return; }
+    if (k === "next") { keep(); toNext = !toNext; draw(); restore(); return; }
+    if (k === "close") { delete x._t; delete x._np; close(); return; }
+    if (k === "save") {
+      const title = ($("#xb-title").value || "").trim(); if (!title) { $("#xb-title").focus(); return; }
+      let parent = par;
+      if (newP) { const nm = ($("#xb-newp") && $("#xb-newp").value || "").trim(); if (!nm) { $("#xb-newp").focus(); return; } const P = blItem(nm, col === "done" ? "tackling" : col, null); B.items.push(P); parent = P.id; }
+      let it = ex;
+      if (!it) { it = blItem(title, col, parent, {notes: x.why || "", actual: x.actual ?? null}); if (parent && blGet(parent)) it.tags = (blGet(parent).tags || []).slice(0, 1);
+        blLog(it, "planned", "Came up in the " + fmtT(r.planStart) + " Pomodoro on " + dShort(d.date)); B.items.push(it); }
+      else { it.title = title; it.parent = parent || null; if (it.col !== col) blMove(it, col); }
+      if (col === "done" && !it.finished) it.finished = Date.now();
+      x.bl = it.id; x.name = title; delete x._t; delete x._np;
+      d.picks = d.picks || []; const on = d.picks.some(p => p.bl === it.id);
+      if (today && !on) d.picks.push({id: uid(), bl: it.id, name: it.title, ctx: blPath(it), extra: true});
+      if (!today && on) d.picks = d.picks.filter(p => p.bl !== it.id);
+      if (toNext && !x.carriedTo && nx) { const nt = mkTask(it.title, null); nt.from = "Came up in the " + fmtT(r.planStart) + " Pomodoro"; nt.bl = it.id; nt.note = x.why || ""; nx.tasks = nx.tasks.filter(q => q.name || q.est); nx.tasks.push(nt); x.carriedTo = nx.id; x.carriedId = nt.id; x.carriedLabel = fmtT(nx.planStart); }
+      if (!toNext && x.carriedTo) { const tg = d.rows.find(q => q.id === x.carriedTo); if (tg) tg.tasks = tg.tasks.filter(q => q.id !== x.carriedId); x.carriedTo = x.carriedId = x.carriedLabel = null; }
+      (d.rows || []).forEach(q => (q.tasks || []).forEach(t => { if (t.id === x.carriedId) t.bl = it.id; }));
+      touchBacklog(); touch(S.date); close(); render();
+      toast(`${BCOL[it.col].e} ${ex ? "Saved" : "Added to " + BCOL[it.col].l}${it.parent ? " · " + blShort((blGet(it.parent) || {}).title || "") : ""}`);
+    }
+  };
 }
 function pkExtraProj(){
   let P = BL().items.find(x => !x.parent && x.title === "Additional tasks taken on" && x.col !== "archive");
@@ -2617,6 +2748,9 @@ function blAction(el, act){
       blMove(it, to); touchBacklog(); render(); toast(`${BCOL[to].e} Moved to ${BCOL[to].l}`); if (to === "done" && it.actual == null && !it.parent && false) setTimeout(() => blSheet(it.id, "#bs-act"), 250); return; }
     case "blPrio": { if (!it) return; const vis = new Set(blFiltered().map(x => x.id)), peers = blPeers(it, vis), i = peers.indexOf(it), o = peers[i + Number(v)]; if (!o) return;
       const arr = BL().items, a = arr.indexOf(it), b = arr.indexOf(o); arr[a] = o; arr[b] = it; touchBacklog(); render(); return; }
+    case "blEdge": { if (!it) return; const vis = new Set(blFiltered().map(x => x.id)), peers = blPeers(it, vis); if (peers.length < 2) return;
+      const arr = BL().items, tgt = v === "top" ? peers[0] : peers[peers.length - 1]; if (tgt === it) return;
+      arr.splice(arr.indexOf(it), 1); const k = arr.indexOf(tgt); arr.splice(v === "top" ? k : k + 1, 0, it); touchBacklog(); render(); return; }
     case "blColl": { if (!it) return; const c = new Set(S.bl.collapsed || []); c.has(it.id) ? c.delete(it.id) : c.add(it.id); S.bl.collapsed = [...c]; blSaveUI(); render(); return; }
     case "blCollAll": S.bl.collapsed = v === "1" ? BL().items.filter(x => blKids(x.id).length).map(x => x.id) : []; blSaveUI(); render(); return;
     case "blAi": blAiRun(); return;
@@ -2638,41 +2772,51 @@ document.addEventListener("scroll", e => { if (e.target && e.target.id === "kb")
 document.addEventListener("toggle", e => { if (e.target.id === "blSetup") { S.bl.setupOpen = e.target.open; blSaveUI(); } }, true);
 /* drag and drop by the ⠿ handle: works with touch, mouse and trackpad */
 let BD = null;
-function bdClear(){ document.querySelectorAll(".drop-before,.drop-after,.drop-into,.kcol.over").forEach(x => x.classList.remove("drop-before", "drop-after", "drop-into", "over")); }
+function bdClear(){ document.querySelectorAll(".drop-before,.drop-after,.drop-into,.drop-no,.drop-up,.kcol.over").forEach(x => x.classList.remove("drop-before", "drop-after", "drop-into", "drop-no", "drop-up", "over")); }
+/* Drop zones on a card: left third = one level up (next to its parent), middle = same level (above/below), right third = inside it (one level down) */
+const BD_LVL = ["project", "task", "subtask", "micro task"];
 function bdTarget(x, y){
   const el = document.elementFromPoint(x, y); if (!el) return null;
   const col = el.closest(".kcol"); if (!col) return null;
-  const head = el.closest("[data-head]"), card = el.closest(".kcard");
-  if (card && card.dataset.bl !== BD.id) { const r = card.getBoundingClientRect(), t = blGet(card.dataset.bl), me = blGet(BD.id);
+  const head = el.closest("[data-head]"), card = el.closest(".kcard"), me = blGet(BD.id);
+  if (card && card.dataset.bl !== BD.id) { const r = card.getBoundingClientRect(), t = blGet(card.dataset.bl);
     if (!t || !me) return {col: col.dataset.col};
-    if (!t.parent && me.parent) return {col: col.dataset.col, el: card, t, mode: "into"};
-    if (t.parent && me.parent && x > r.left + r.width * 0.7 && blDepth(t) < 3) return {col: col.dataset.col, el: card, t, mode: "into"};
-    return {col: col.dataset.col, el: card, t, mode: y < r.top + r.height / 2 ? "before" : "after"}; }
-  if (head) { const t = blGet(head.dataset.head), me = blGet(BD.id); if (t && me && me.parent && t.id !== me.id) return {col: col.dataset.col, el: head, t, mode: "into"}; }
+    const fx = (x - r.left) / r.width, half = y < r.top + r.height / 2 ? "before" : "after";
+    if (fx > 0.66) return {col: col.dataset.col, el: card, t, mode: "into"};
+    if (fx < 0.33 && t.parent) { const pt = blGet(t.parent); if (pt) return {col: col.dataset.col, el: card, t: pt, mode: "after", up: true}; }
+    return {col: col.dataset.col, el: card, t, mode: half}; }
+  if (head) { const t = blGet(head.dataset.head); if (t && me && t.id !== me.id) return {col: col.dataset.col, el: head, t, mode: "into"}; }
   return {col: col.dataset.col};
+}
+function bdPlan(tg){ /* where the item would end up: {parent, ok, why} */
+  const it = blGet(BD.id); if (!it || !tg || !tg.t) return null; const t = tg.t;
+  if (t.id === it.id || blDesc(it.id).some(x => x.id === t.id)) return {ok: false, why: "Can't go inside itself"};
+  const parent = tg.mode === "into" ? t : (t.parent ? blGet(t.parent) : null);
+  const depth = parent ? blDepth(parent) + 1 : 0;
+  if (depth + blHeight(it) > 3) return {ok: false, why: "Too deep: micro tasks are the last level"};
+  return {ok: true, parent, depth};
+}
+function bdLabel(tg){
+  const pl = bdPlan(tg); if (!pl) return tg && tg.col ? "Move to " + BCOL[tg.col].e + " " + BCOL[tg.col].l : "";
+  if (!pl.ok) return "✕ " + pl.why;
+  const lvl = BD_LVL[pl.depth] || "item", nm = x => "“" + blShort(x.title).slice(0, 40) + "”";
+  if (tg.mode === "into") return "↳ Inside " + nm(tg.t) + " as a " + lvl;
+  return (tg.up ? "⇤ Up a level: " : "") + (tg.mode === "before" ? "Above " : "Below ") + nm(tg.t) + (pl.parent ? " · " + lvl + " of " + nm(pl.parent) : " · own project");
 }
 function bdApply(tg){
   const it = blGet(BD.id); if (!it || !tg) return false; const arr = BL().items;
-  let moved = false; const before = JSON.stringify([it.col, it.parent, arr.indexOf(it)]);
+  const before = JSON.stringify([it.col, it.parent, arr.indexOf(it)]);
   if (tg.col && tg.col !== it.col) { if (tg.col === "done" && blLockDone(it)) return false; blMove(it, tg.col); }
   if (tg.t && tg.t.id !== it.id) {
-    const t = tg.t, desc = new Set(blDesc(it.id).map(x => x.id));
-    if (desc.has(t.id)) { toast("Can't move an item inside itself"); }
-    else if (tg.mode === "into") {
-      if (blDepth(t) + 1 + blHeight(it) > 3) toast("That would be deeper than micro tasks");
-      else { if (it.parent !== t.id) { it.parent = t.id; blLog(it, "project", "Moved under " + t.title); } arr.splice(arr.indexOf(it), 1); const fk = blKids(t.id)[0]; arr.splice(fk ? arr.indexOf(fk) : arr.indexOf(t) + 1, 0, it); }
-    } else {
-      let ref = t;
-      if (!it.parent) ref = blRoot(t);                                  /* a project moves among projects */
-      else if (ref.parent !== it.parent) { const np = ref.parent ? blGet(ref.parent) : null;
-        if (!np) { /* dropped next to a project card: become its sibling project? keep it a task of the nearest project */ }
-        else if (blDepth(np) + 1 + blHeight(it) > 3) { toast("That would be deeper than micro tasks"); ref = null; }
-        else { it.parent = np.id; blLog(it, "project", "Moved under " + np.title); } }
-      if (ref && ref.id !== it.id && (ref.parent || null) === (it.parent || null)) { arr.splice(arr.indexOf(it), 1); const k = arr.indexOf(ref); arr.splice(tg.mode === "before" ? k : k + 1, 0, it); }
-    }
+    const pl = bdPlan(tg);
+    if (pl && !pl.ok) toast(pl.why);
+    else if (pl) { const np = pl.parent ? pl.parent.id : null;
+      if ((it.parent || null) !== np) { it.parent = np; blLog(it, "project", np ? "Moved under " + pl.parent.title : "Made its own project"); }
+      arr.splice(arr.indexOf(it), 1);
+      if (tg.mode === "into") { const fk = blKids(tg.t.id).filter(k => k.id !== it.id)[0]; arr.splice(fk ? arr.indexOf(fk) : arr.indexOf(tg.t) + 1, 0, it); }
+      else { const k = arr.indexOf(tg.t); arr.splice(tg.mode === "before" ? k : k + 1, 0, it); } }
   }
-  moved = JSON.stringify([it.col, it.parent, arr.indexOf(it)]) !== before;
-  return moved;
+  return JSON.stringify([it.col, it.parent, arr.indexOf(it)]) !== before;
 }
 function bdAuto(){ if (!BD) return; const kb = $("#kb"), {x, y} = BD, W = window.innerWidth, H = window.innerHeight, e = 48;
   if (kb) { if (x < e) kb.scrollLeft -= 12; else if (x > W - e) kb.scrollLeft += 12; }
@@ -2691,9 +2835,11 @@ document.addEventListener("pointermove", e => { if (!BD || e.pointerId !== BD.pi
   BD.x = e.clientX; BD.y = e.clientY; BD.ghost.style.left = (e.clientX - BD.dx) + "px"; BD.ghost.style.top = (e.clientY - BD.dy) + "px";
   bdClear(); const tg = BD.tg = bdTarget(e.clientX, e.clientY); if (!tg) return;
   const colEl = document.querySelector(`.kcol[data-col="${tg.col}"]`); if (colEl) colEl.classList.add("over");
-  if (tg.el) tg.el.classList.add(tg.mode === "into" ? "drop-into" : tg.mode === "before" ? "drop-before" : "drop-after");
+  if (tg.el) { const pl = bdPlan(tg); tg.el.classList.add(pl && !pl.ok ? "drop-no" : tg.mode === "into" ? "drop-into" : tg.mode === "before" ? "drop-before" : "drop-after"); if (tg.up) tg.el.classList.add("drop-up"); }
+  let lb = $("#bdlbl"); if (!lb) { lb = document.createElement("div"); lb.id = "bdlbl"; document.body.appendChild(lb); }
+  lb.textContent = bdLabel(tg); lb.hidden = !lb.textContent; lb.style.left = Math.min(e.clientX + 14, window.innerWidth - 230) + "px"; lb.style.top = (e.clientY + 18) + "px";
 }, {passive: false});
-function bdEnd(e, cancel){ if (!BD || (e && e.pointerId !== BD.pid)) return; cancelAnimationFrame(BD.raf); bdClear(); BD.ghost.remove(); BD.card.classList.remove("dragging");
+function bdEnd(e, cancel){ if (!BD || (e && e.pointerId !== BD.pid)) return; cancelAnimationFrame(BD.raf); bdClear(); const lb0 = $("#bdlbl"); if (lb0) lb0.remove(); BD.ghost.remove(); BD.card.classList.remove("dragging");
   const tg = cancel ? null : (e ? bdTarget(e.clientX, e.clientY) : BD.tg); let ok = false; if (tg) ok = bdApply(tg); const id = BD.id; BD = null;
   if (ok) { touchBacklog(); render(); const it = blGet(id); toast(`Moved${it && it.parent ? " · " + blPath(it) : ""} · ${BCOL[it.col].e} ${BCOL[it.col].l}`); setTimeout(() => { const c = document.querySelector(`.kcard[data-bl="${id}"]`); if (c) { c.classList.add("nowflash"); } }, 30); } }
 document.addEventListener("pointerup", e => bdEnd(e));
