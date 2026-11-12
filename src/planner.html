@@ -266,6 +266,10 @@ details.prios[open]>summary .psm{display:none}
 .pkt small{font-weight:400}
 .pkb{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
 .pkb button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 10px;font-size:13px;min-height:32px}
+.pkb .pkmv{margin-left:auto;display:flex;gap:4px}
+.pkb .pkmv button{border:0;background:none;font-size:17px;min-width:32px;padding:0 4px}
+.pkb .pkmv button:disabled{opacity:.3}
+.pkb .pkmv + .x{margin-left:0}
 .pkb .x{border:0;background:none;color:var(--muted);font-size:18px;margin-left:auto;padding:0 6px}
 .remopts{display:grid;gap:8px;margin-top:12px}
 .remopts .btn{display:grid;gap:2px;text-align:left;text-decoration:none;color:inherit;padding:10px 12px}
@@ -1066,7 +1070,7 @@ function overflowPomo(r, d){
 }
 function tasksPlanEditor(r){
   const sum = r.tasks.reduce((s,t) => s + (t.est||0), 0);
-  return `${pomoStartHTML(r)}<div class="field"><span>Tasks for the 25 minutes</span><div class="taskbox">${r.tasks.map((t,i) => `<div class="task" style="--lv:${t.lvl || 0}"><div class="row">
+  return `${pomoStartHTML(r)}<div class="field"><span>Tasks for the 25 minutes</span><div class="taskbox">${r.tasks.map((t,i) => `<div class="task ${t.outcome === "done" ? "is-done" : ""}" style="--lv:${t.lvl || 0}"><div class="row"><button type="button" class="cbox" data-act="tCheck" data-t="${t.id}" data-id="${r.id}" aria-pressed="${t.outcome === "done"}" aria-label="Done">✓</button>
       <input type="text" autocomplete="off" list="prios" id="tn-${t.id}" data-f="task" data-k="name" data-t="${t.id}" data-id="${r.id}" value="${esc(t.name)}" placeholder="Task ${i+1}"></div>
       ${t.from ? `<div class="from">↪ ${esc(t.from)}</div>` : ""}
       <div class="tstate">${wbtn({kind:"dur", f:"task", id:r.id, t:t.id, k:"est", val:t.est, empty:"est.", title:"Estimated time", max:60, cls:"sm"})}<span class="tmv"><button type="button" class="mv" data-act="tMove" data-t="${t.id}" data-id="${r.id}" aria-label="Move to another Pomodoro" title="Move to another Pomodoro">⇄</button><button type="button" class="mv" data-act="tUp" data-t="${t.id}" data-id="${r.id}" aria-label="Move task up" ${i === 0 ? "disabled" : ""}>↑</button><button type="button" class="mv" data-act="tDown" data-t="${t.id}" data-id="${r.id}" aria-label="Move task down" ${i === r.tasks.length - 1 ? "disabled" : ""}>↓</button><button type="button" class="x" data-act="rmTask" data-t="${t.id}" data-id="${r.id}" aria-label="Remove task">×</button></span></div></div>`).join("")}</div></div>
@@ -1221,13 +1225,14 @@ function pkNode(d, it, dep){
   if (kids.length && !fold) h += kids.map(k => pkNode(d, k, dep + 1)).join("");
   return h;
 }
+function pkPeers(d, p){ return (d.picks || []).filter(x => (x.main ?? null) === (p.main ?? null) && (p.main != null || !!x.extra === !!p.extra)); }
 function pkCard(d, p){
   const it = p.bl ? blGet(p.bl) : null, mainB = p.main != null && (d.prioBl || [])[p.main], cx = p.extra ? "" : it ? (mainB && blRoot(it).id === mainB ? blPath(it).split(" › ").slice(1).join(" › ") : blPath(it)) : (p.ctx || "");
   const body = it ? pkNode(d, it, 0) : `<div class="pn2 ${p.done ? "done" : ""}" style="--lv:0"><button type="button" class="cbox" data-act="pkTickP" data-k="${p.id}" aria-pressed="${!!p.done}" aria-label="Done">✓</button><span class="pkn">${esc(p.name)}</span></div>${p.note ? `<div class="pnote">${esc(p.note)}</div>` : ""}`;
   const open = it ? !isClosed(it) : !p.done, pr = d.priorities || [];
   return `<div class="pk">${cx ? `<small class="hint pkc">↳ ${esc(cx)}</small>` : ""}${body}
     <div class="pkb"><span class="lbl">Main</span>${[0,1,2].map(i => `<button type="button" data-act="pickTo" data-k="${p.id}" data-v="${i}" aria-pressed="${p.main === i}" title="${p.main === i ? "Back to the items to sort" : esc(pr[i] ? "Under main task " + (i + 1) + ": " + pr[i] : "Make it main task " + (i + 1))}">${i + 1}</button>`).join("")}
-      ${open ? `<button type="button" data-act="pkTmr" data-k="${p.id}" title="Move to tomorrow, to sort there">→ Tomorrow</button>` : ""}<button type="button" class="x" data-act="pickRm" data-k="${p.id}" aria-label="Take ${esc(p.name)} off today">×</button></div></div>`;
+      ${open ? `<button type="button" data-act="pkTmr" data-k="${p.id}" title="Move to tomorrow, to sort there">→ Tomorrow</button>` : ""}${(() => { const pe = pkPeers(d, p), k = pe.indexOf(p); return pe.length > 1 ? `<span class="pkmv"><button type="button" class="mv" data-act="pickMv" data-k="${p.id}" data-v="-1" aria-label="Move up" ${k <= 0 ? "disabled" : ""}>↑</button><button type="button" class="mv" data-act="pickMv" data-k="${p.id}" data-v="1" aria-label="Move down" ${k >= pe.length - 1 ? "disabled" : ""}>↓</button></span>` : ""; })()}<button type="button" class="x" data-act="pickRm" data-k="${p.id}" aria-label="Take ${esc(p.name)} off today">×</button></div></div>`;
 }
 let PRIO_OPEN = true; try { PRIO_OPEN = localStorage.getItem("dayStructure.prioOpen") !== "0"; } catch(e){}
 function qMark(txt, q){ const t = String(txt || ""), i = t.toLowerCase().indexOf(q); if (i < 0) return esc(t.length > 90 ? t.slice(0, 88) + "…" : t); const a = Math.max(0, i - 30), b = Math.min(t.length, i + q.length + 50); return (a ? "…" : "") + esc(t.slice(a, i)) + "<mark>" + esc(t.slice(i, i + q.length)) + "</mark>" + esc(t.slice(i + q.length, b)) + (b < t.length ? "…" : ""); }
@@ -1849,6 +1854,17 @@ document.addEventListener("pointerdown", () => { if (mediaEl && mediaEl.paused &
 
 document.addEventListener("toggle", e => { if (e.target.id === "ideasPanel") S.ideasOpen = e.target.open; }, true);
 document.addEventListener("toggle", e => { const el = e.target; if (el.dataset && el.dataset.cmt) { S.cmtOpen = S.cmtOpen || {}; S.cmtOpen[el.dataset.cmt] = el.open; } }, true);
+/* Moving an item up/down keeps its arrow under the finger: the list moves around it */
+const MOVE_ACTS = new Set(["up","down","tUp","tDown","pickMv","blPrio","blEdge","pkUp","pkDown"]);
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-act]"); if (!el || !MOVE_ACTS.has(el.dataset.act)) return;
+  const keys = ["act","id","t","k","b","v"].filter(k => el.dataset[k] != null), sel = keys.map(k => `[data-${k}="${CSS.escape(el.dataset[k])}"]`).join("");
+  const y0 = el.getBoundingClientRect().top, ix = Math.max(0, [...document.querySelectorAll(sel)].indexOf(el)), pick = q => { const all = document.querySelectorAll(q); return all[Math.min(ix, all.length - 1)] || null; };
+  setTimeout(() => { let n = pick(sel);
+    if (!n || n.disabled) { const alt = el.dataset.act === "blEdge" ? null : el.dataset.v === "-1" ? "1" : el.dataset.v === "1" ? "-1" : null; const altAct = {up:"down",down:"up",tUp:"tDown",tDown:"tUp"}[el.dataset.act];
+      const s2 = altAct ? sel.replace(`[data-act="${el.dataset.act}"]`, `[data-act="${altAct}"]`) : alt ? sel.replace(`[data-v="${el.dataset.v}"]`, `[data-v="${alt}"]`) : null; if (s2) n = pick(s2) || n; }
+    if (n) window.scrollBy({top: n.getBoundingClientRect().top - y0, behavior: "instant"}); }, 0);
+}, true);
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-act]"); if (!el) {
     const tr = e.target.closest("tr[data-id]"); if (tr) { S.open = tr.dataset.id; location.hash = "#actual"; } return; }
@@ -1931,7 +1947,6 @@ document.addEventListener("click", e => {
         second.planStart = s0; first.planStart = planEnd(second) + gap; }
       d.rows[i] = other; d.rows[j] = r;
       if (S.view !== "plan") [r, other].forEach(x => { if (!x.fixed) { x.actGap = null; x.actualStart = null; } });
-      setTimeout(() => { const li = document.querySelector(`[data-row="${r.id}"]`); if (li) li.scrollIntoView({block:"nearest", behavior:"smooth"}); }, 30);
       break; }
     case "addBelow": { const nr = mkRow({planDur:30}); insertRows(d, r, [nr]); S.open = nr.id; break; }
     case "pomoBelow": { const items = [POMO("Priority tasks"), BRK(S.seqDur, choicesFor(S.seqDur))]; insertRows(d, r, items); S.open = items[0].id; toast(`Pomodoro and ${fmtD(S.seqDur)} break added`); break; }
@@ -1990,6 +2005,8 @@ document.addEventListener("click", e => {
     case "prioNote": { S.prioN = S.prioN || {}; S.prioN[el.dataset.k] = true; render(); setTimeout(() => { const n = $("#prion-" + el.dataset.k); if (n) n.focus(); }, 30); return; }
     case "pickAdd": { const it = S.backlog && S.backlog.items.find(x => x.id === v); if (!it) return; blPick(it, S.date); render(); toast("Added to the picks"); return; }
     case "pickRm": d.picks = (d.picks || []).filter(x => x.id !== el.dataset.k); break;
+    case "pickMv": { const p = (d.picks || []).find(x => x.id === el.dataset.k); if (!p) return; const pe = pkPeers(d, p), o = pe[pe.indexOf(p) + Number(v)]; if (!o) return;
+      const a = d.picks.indexOf(p), b = d.picks.indexOf(o); d.picks[a] = o; d.picks[b] = p; break; }
     case "pickTo": { const p = (d.picks || []).find(x => x.id === el.dataset.k); if (!p) return; const i = Number(v);
       if (p.main === i) { p.main = null; toast("Back to the items to sort"); break; }
       if (!p.bl && !(d.priorities[i] || "").trim()) { d.priorities[i] = p.name; d.prioN = d.prioN || ["", "", ""]; if (p.note) d.prioN[i] = p.note; if (d.prioMoved) d.prioMoved[i] = ""; if (d.prioDone) d.prioDone[i] = false; d.picks = d.picks.filter(x => x !== p); toast("Now main task " + (i + 1)); break; }
