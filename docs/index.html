@@ -423,7 +423,10 @@ body.v-backlog .daynav{display:none}
 .kghost{position:fixed;z-index:40;pointer-events:none;box-shadow:0 12px 30px rgba(0,0,0,.25);transform:rotate(1.5deg);opacity:.95}
 .drop-before{box-shadow:0 -3px 0 0 var(--accent)}
 .drop-after{box-shadow:0 3px 0 0 var(--accent)}
-.drop-into{outline:2px solid var(--accent);outline-offset:1px}
+.drop-into{outline:2px solid var(--accent);outline-offset:1px;box-shadow:inset 24px 0 0 -18px var(--accent)}
+.drop-before.drop-up{box-shadow:-14px -3px 0 0 var(--came)} .drop-after.drop-up{box-shadow:-14px 3px 0 0 var(--came)}
+.drop-no{outline:2px dashed var(--bad);outline-offset:1px}
+#bdlbl{position:fixed;z-index:41;pointer-events:none;max-width:220px;background:var(--ink);color:var(--surface);font-size:12.5px;line-height:1.3;padding:6px 9px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .kgrp small{font-weight:500;color:var(--muted)}
 .aibox{display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
 .aibox textarea{min-height:52px}
@@ -2769,41 +2772,51 @@ document.addEventListener("scroll", e => { if (e.target && e.target.id === "kb")
 document.addEventListener("toggle", e => { if (e.target.id === "blSetup") { S.bl.setupOpen = e.target.open; blSaveUI(); } }, true);
 /* drag and drop by the ⠿ handle: works with touch, mouse and trackpad */
 let BD = null;
-function bdClear(){ document.querySelectorAll(".drop-before,.drop-after,.drop-into,.kcol.over").forEach(x => x.classList.remove("drop-before", "drop-after", "drop-into", "over")); }
+function bdClear(){ document.querySelectorAll(".drop-before,.drop-after,.drop-into,.drop-no,.drop-up,.kcol.over").forEach(x => x.classList.remove("drop-before", "drop-after", "drop-into", "drop-no", "drop-up", "over")); }
+/* Drop zones on a card: left third = one level up (next to its parent), middle = same level (above/below), right third = inside it (one level down) */
+const BD_LVL = ["project", "task", "subtask", "micro task"];
 function bdTarget(x, y){
   const el = document.elementFromPoint(x, y); if (!el) return null;
   const col = el.closest(".kcol"); if (!col) return null;
-  const head = el.closest("[data-head]"), card = el.closest(".kcard");
-  if (card && card.dataset.bl !== BD.id) { const r = card.getBoundingClientRect(), t = blGet(card.dataset.bl), me = blGet(BD.id);
+  const head = el.closest("[data-head]"), card = el.closest(".kcard"), me = blGet(BD.id);
+  if (card && card.dataset.bl !== BD.id) { const r = card.getBoundingClientRect(), t = blGet(card.dataset.bl);
     if (!t || !me) return {col: col.dataset.col};
-    if (!t.parent && me.parent) return {col: col.dataset.col, el: card, t, mode: "into"};
-    if (t.parent && me.parent && x > r.left + r.width * 0.7 && blDepth(t) < 3) return {col: col.dataset.col, el: card, t, mode: "into"};
-    return {col: col.dataset.col, el: card, t, mode: y < r.top + r.height / 2 ? "before" : "after"}; }
-  if (head) { const t = blGet(head.dataset.head), me = blGet(BD.id); if (t && me && me.parent && t.id !== me.id) return {col: col.dataset.col, el: head, t, mode: "into"}; }
+    const fx = (x - r.left) / r.width, half = y < r.top + r.height / 2 ? "before" : "after";
+    if (fx > 0.66) return {col: col.dataset.col, el: card, t, mode: "into"};
+    if (fx < 0.33 && t.parent) { const pt = blGet(t.parent); if (pt) return {col: col.dataset.col, el: card, t: pt, mode: "after", up: true}; }
+    return {col: col.dataset.col, el: card, t, mode: half}; }
+  if (head) { const t = blGet(head.dataset.head); if (t && me && t.id !== me.id) return {col: col.dataset.col, el: head, t, mode: "into"}; }
   return {col: col.dataset.col};
+}
+function bdPlan(tg){ /* where the item would end up: {parent, ok, why} */
+  const it = blGet(BD.id); if (!it || !tg || !tg.t) return null; const t = tg.t;
+  if (t.id === it.id || blDesc(it.id).some(x => x.id === t.id)) return {ok: false, why: "Can't go inside itself"};
+  const parent = tg.mode === "into" ? t : (t.parent ? blGet(t.parent) : null);
+  const depth = parent ? blDepth(parent) + 1 : 0;
+  if (depth + blHeight(it) > 3) return {ok: false, why: "Too deep: micro tasks are the last level"};
+  return {ok: true, parent, depth};
+}
+function bdLabel(tg){
+  const pl = bdPlan(tg); if (!pl) return tg && tg.col ? "Move to " + BCOL[tg.col].e + " " + BCOL[tg.col].l : "";
+  if (!pl.ok) return "✕ " + pl.why;
+  const lvl = BD_LVL[pl.depth] || "item", nm = x => "“" + blShort(x.title).slice(0, 40) + "”";
+  if (tg.mode === "into") return "↳ Inside " + nm(tg.t) + " as a " + lvl;
+  return (tg.up ? "⇤ Up a level: " : "") + (tg.mode === "before" ? "Above " : "Below ") + nm(tg.t) + (pl.parent ? " · " + lvl + " of " + nm(pl.parent) : " · own project");
 }
 function bdApply(tg){
   const it = blGet(BD.id); if (!it || !tg) return false; const arr = BL().items;
-  let moved = false; const before = JSON.stringify([it.col, it.parent, arr.indexOf(it)]);
+  const before = JSON.stringify([it.col, it.parent, arr.indexOf(it)]);
   if (tg.col && tg.col !== it.col) { if (tg.col === "done" && blLockDone(it)) return false; blMove(it, tg.col); }
   if (tg.t && tg.t.id !== it.id) {
-    const t = tg.t, desc = new Set(blDesc(it.id).map(x => x.id));
-    if (desc.has(t.id)) { toast("Can't move an item inside itself"); }
-    else if (tg.mode === "into") {
-      if (blDepth(t) + 1 + blHeight(it) > 3) toast("That would be deeper than micro tasks");
-      else { if (it.parent !== t.id) { it.parent = t.id; blLog(it, "project", "Moved under " + t.title); } arr.splice(arr.indexOf(it), 1); const fk = blKids(t.id)[0]; arr.splice(fk ? arr.indexOf(fk) : arr.indexOf(t) + 1, 0, it); }
-    } else {
-      let ref = t;
-      if (!it.parent) ref = blRoot(t);                                  /* a project moves among projects */
-      else if (ref.parent !== it.parent) { const np = ref.parent ? blGet(ref.parent) : null;
-        if (!np) { /* dropped next to a project card: become its sibling project? keep it a task of the nearest project */ }
-        else if (blDepth(np) + 1 + blHeight(it) > 3) { toast("That would be deeper than micro tasks"); ref = null; }
-        else { it.parent = np.id; blLog(it, "project", "Moved under " + np.title); } }
-      if (ref && ref.id !== it.id && (ref.parent || null) === (it.parent || null)) { arr.splice(arr.indexOf(it), 1); const k = arr.indexOf(ref); arr.splice(tg.mode === "before" ? k : k + 1, 0, it); }
-    }
+    const pl = bdPlan(tg);
+    if (pl && !pl.ok) toast(pl.why);
+    else if (pl) { const np = pl.parent ? pl.parent.id : null;
+      if ((it.parent || null) !== np) { it.parent = np; blLog(it, "project", np ? "Moved under " + pl.parent.title : "Made its own project"); }
+      arr.splice(arr.indexOf(it), 1);
+      if (tg.mode === "into") { const fk = blKids(tg.t.id).filter(k => k.id !== it.id)[0]; arr.splice(fk ? arr.indexOf(fk) : arr.indexOf(tg.t) + 1, 0, it); }
+      else { const k = arr.indexOf(tg.t); arr.splice(tg.mode === "before" ? k : k + 1, 0, it); } }
   }
-  moved = JSON.stringify([it.col, it.parent, arr.indexOf(it)]) !== before;
-  return moved;
+  return JSON.stringify([it.col, it.parent, arr.indexOf(it)]) !== before;
 }
 function bdAuto(){ if (!BD) return; const kb = $("#kb"), {x, y} = BD, W = window.innerWidth, H = window.innerHeight, e = 48;
   if (kb) { if (x < e) kb.scrollLeft -= 12; else if (x > W - e) kb.scrollLeft += 12; }
@@ -2822,9 +2835,11 @@ document.addEventListener("pointermove", e => { if (!BD || e.pointerId !== BD.pi
   BD.x = e.clientX; BD.y = e.clientY; BD.ghost.style.left = (e.clientX - BD.dx) + "px"; BD.ghost.style.top = (e.clientY - BD.dy) + "px";
   bdClear(); const tg = BD.tg = bdTarget(e.clientX, e.clientY); if (!tg) return;
   const colEl = document.querySelector(`.kcol[data-col="${tg.col}"]`); if (colEl) colEl.classList.add("over");
-  if (tg.el) tg.el.classList.add(tg.mode === "into" ? "drop-into" : tg.mode === "before" ? "drop-before" : "drop-after");
+  if (tg.el) { const pl = bdPlan(tg); tg.el.classList.add(pl && !pl.ok ? "drop-no" : tg.mode === "into" ? "drop-into" : tg.mode === "before" ? "drop-before" : "drop-after"); if (tg.up) tg.el.classList.add("drop-up"); }
+  let lb = $("#bdlbl"); if (!lb) { lb = document.createElement("div"); lb.id = "bdlbl"; document.body.appendChild(lb); }
+  lb.textContent = bdLabel(tg); lb.hidden = !lb.textContent; lb.style.left = Math.min(e.clientX + 14, window.innerWidth - 230) + "px"; lb.style.top = (e.clientY + 18) + "px";
 }, {passive: false});
-function bdEnd(e, cancel){ if (!BD || (e && e.pointerId !== BD.pid)) return; cancelAnimationFrame(BD.raf); bdClear(); BD.ghost.remove(); BD.card.classList.remove("dragging");
+function bdEnd(e, cancel){ if (!BD || (e && e.pointerId !== BD.pid)) return; cancelAnimationFrame(BD.raf); bdClear(); const lb0 = $("#bdlbl"); if (lb0) lb0.remove(); BD.ghost.remove(); BD.card.classList.remove("dragging");
   const tg = cancel ? null : (e ? bdTarget(e.clientX, e.clientY) : BD.tg); let ok = false; if (tg) ok = bdApply(tg); const id = BD.id; BD = null;
   if (ok) { touchBacklog(); render(); const it = blGet(id); toast(`Moved${it && it.parent ? " · " + blPath(it) : ""} · ${BCOL[it.col].e} ${BCOL[it.col].l}`); setTimeout(() => { const c = document.querySelector(`.kcard[data-bl="${id}"]`); if (c) { c.classList.add("nowflash"); } }, 30); } }
 document.addEventListener("pointerup", e => bdEnd(e));
