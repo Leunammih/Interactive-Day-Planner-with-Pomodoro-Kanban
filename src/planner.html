@@ -184,6 +184,8 @@ select.wide{width:100%;font-family:var(--f-body)}
 .chip.pomo{background:var(--accent);color:var(--accent-ink)}
 .chip.brk{background:var(--accent-soft);color:var(--accent)}
 .chip.rst{background:color-mix(in srgb,var(--good) 18%,var(--surface));color:var(--good)}
+.chip.mvt{background:color-mix(in srgb,#e8710a 16%,var(--surface));color:#b45309}
+.item.k-move .card{background:color-mix(in srgb,#e8710a 5%,var(--surface))}
 .chip.intr{background:var(--came-soft);color:var(--came)}
 .item.k-restore .card{background:color-mix(in srgb,var(--good) 6%,var(--surface))}
 .item.k-interrupted .card{border-style:dashed}
@@ -566,11 +568,12 @@ const DEFAULT_SETTINGS = {
   long:["9D breathwork reset","Extended Yoga Nidra (45 min)","Extended Joe Dispenza meditation: energy centres","Walking meditation","Go into nature for a walk"],
   routine:["9D morning breath 9 min","JD morning meditation 23 min","JD new potentials breath 7 min","JD meditation 15 min","JD new potentials meditation 43 min","Affirmations 5 min","Stretch 10 min"],
   small:["Check & answer messages","Work communications","Phone calls","Email inbox","Reminders for today","Calendar: today and next week"],
+  move:["Running","Swimming","Dancing","Yoga","Walk"],
   restore:["Slow morning","Beach","Time with people","Did nothing, just rested","Nap","Walk in nature","Reading for fun"],
   interrupt:["Power cut","Internet down","Unexpected visitor","Errand that couldn't wait","Feeling unwell"],
   topics:["Planning & alignment","Priority tasks","Deep work","AI","Problem solving","Fun","Admin & email","Creative","Learning"]
 };
-const LIST_NAMES = {five:"5-minute breaks", ten:"10-minute breaks", fifteen:"15-minute breaks", long:"Long breaks (45 min to 1 h)", routine:"Morning routine", small:"Smaller optional tasks", restore:"Restore / off", interrupt:"Interruptions", topics:"Pomodoro topics"};
+const LIST_NAMES = {five:"5-minute breaks", ten:"10-minute breaks", fifteen:"15-minute breaks", long:"Long breaks (45 min to 1 h)", routine:"Morning routine", small:"Smaller optional tasks", move:"Movement & exercise", restore:"Restore / off", interrupt:"Interruptions", topics:"Pomodoro topics"};
 const BASE_TYPES = ["Wake up","Joe Dispenza breath & meditation","Pomodoro","Break","Long break","Breakfast","Lunch","Dinner","Movement","Calls & email","Admin","Coaching session","Facilitation prep","Walk","Reading","Family","Wind down"];
 const ALL_DURS = [5,10,15,20,30,45,60,90];
 function mkTask(name, est){ return {id:uid(), name:name||"", est:est ?? null, actual:null, outcome:""}; }
@@ -878,7 +881,7 @@ function durRow(prefix, f, r, val, emptyLabel){
   return `<div class="trow"><button type="button" class="step" data-act="bump" data-f="${f}" data-v="-5" data-id="${r.id}" aria-label="5 minutes less">−5</button>${wbtn({kind:"dur", f, id:r.id, val, title: f === "planDur" ? "Allotted time" : "Actual time", empty: emptyLabel})}<button type="button" class="step" data-act="bump" data-f="${f}" data-v="5" data-id="${r.id}" aria-label="5 minutes more">+5</button></div>`;
 }
 function quickDur(field, val, r, list){
-  return `<div class="quick">${(list || [5,10,15,20,25,30,45,60,90]).map(m => `<button type="button" data-act="setdur" data-f="${field}" data-v="${m}" data-id="${r.id}" aria-pressed="${val===m}">${fmtD(m)}</button>`).join("")}</div>`;
+  return `<div class="quick">${(list || [5,10,15,20,25,30,45,60,90,120,180,240]).map(m => `<button type="button" data-act="setdur" data-f="${field}" data-v="${m}" data-id="${r.id}" aria-pressed="${val===m}">${fmtD(m)}</button>`).join("")}</div>`;
 }
 function dotsHTML(r, f, label){
   let s = `<div class="dots" role="group" aria-label="${label}">`;
@@ -928,9 +931,14 @@ function pomoStartHTML(r){
   return `<div class="pomostart">${mine ? `<span class="hint">${T.done ? "This Pomodoro has finished." : "This Pomodoro is running: see the timer at the top."}</span>` : `<button class="btn primary" data-act="pomoStart" data-id="${r.id}">▶ Start 25-minute timer</button><span class="hint">Soft ticking, a bell at the end</span>`}</div>`;
 }
 function typeChips(r){
-  if (r.kind === "pomodoro") return chip("Pomodoro", "pomo") + (r.category ? chip(r.category) : "") + (T && T.rowId === r.id && !T.done ? `<span class="tag run">running</span>` : "");
-  if (r.kind === "routine") return chip(r.type || "Morning routine");
-  if (r.kind === "break") return chip(r.type || "Break", "brk");
+  const ic = KICON[r.kind] + " ";
+  if (r.kind === "move") return chip(ic + (r.type || "Movement & exercise"), "mvt");
+  if (r.kind === "meal") return chip(ic + (r.type || "Meal"));
+  if (r.kind === "comms") return chip(ic + (r.type || "Communication & logistics"));
+  if (r.kind === "block" && r.type) return chip(ic + r.type);
+  if (r.kind === "pomodoro") return chip("🍅 Pomodoro", "pomo") + (r.category ? chip(r.category) : "") + (T && T.rowId === r.id && !T.done ? `<span class="tag run">running</span>` : "");
+  if (r.kind === "routine") return chip("🔁 " + (r.type || "Morning routine"));
+  if (r.kind === "break") return chip("☕ " + (r.type || "Break"), "brk");
   if (r.kind === "restore") return chip("🌿 " + (r.type || "Restore / off"), "rst");
   if (r.kind === "interrupted") return chip("⚡ " + (r.type || "Interrupted"), "intr");
   return chip(r.type);
@@ -954,7 +962,7 @@ function headHTML(r, ctx){
       ? ((r.items||[]).length ? `<ul class="ritems">${r.items.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : "") + (r.content ? `<div class="cmt">${esc(r.content)}</div>` : "") || `<span class="cmt">${r.kind === "comms" ? "Tap to choose what to catch up on" : "Tap to choose your practices"}</span>`
       : r.kind === "pomodoro"
       ? (tasksPlanHTML(r, d) + (r.content ? `<div class="cmt">${esc(r.content)}</div>` : "") || `<span class="cmt">Tap to plan the session's tasks</span>`)
-      : `<div class="content">${esc(r.content) || `<span class="cmt">${r.kind === "break" ? "Tap to pick a break idea" : r.kind === "restore" ? "Tap to note how you restored" : r.kind === "interrupted" ? "Tap to note what interrupted the day" : "Tap to add what this block holds"}</span>`}</div>`;
+      : `<div class="content">${esc(r.content) || `<span class="cmt">${r.kind === "break" ? "Tap to pick a break idea" : r.kind === "move" ? "Tap to pick what you did" : r.kind === "restore" ? "Tap to note how you restored" : r.kind === "interrupted" ? "Tap to note what interrupted the day" : "Tap to add what this block holds"}</span>`}</div>`;
     const ps = planRows(d), nx = ps[ps.indexOf(r)+1], ov = nx ? planEnd(r) - nx.planStart : 0;
     return `<div class="meta">${typeChips(r)}<span class="num">${fmtD(r.planDur)}</span>${r.fixed ? `<span class="tag skip">fixed time</span>` : ""}${ov > 0 ? `<span class="tag warn">overlaps next by ${ov} min</span>` : ""}</div>${body}${r.lastNote ? `<div class="last">Last time: ${esc(r.lastNote)}</div>` : ""}`;
   }
@@ -972,13 +980,15 @@ function headHTML(r, ctx){
   return `<div class="meta">${actChips(r)}<span class="num">${durTxt}</span>${tag}</div>${body}${r.comments ? `<div class="cmt">${esc(r.comments)}</div>` : ""}${rates}`;
 }
 
-const KINDS = [["block","Block"],["routine","Routine"],["pomodoro","Pomodoro"],["break","Break"],["meal","Meal"],["comms","Comms & logistics"],["restore","Restore / off"],["interrupted","Interrupted"]];
-const KIND_TYPE = {block:"", routine:"Morning routine", pomodoro:"Pomodoro", break:"Break", meal:"Meal", comms:"Communication & logistics", restore:"Restore / off", interrupted:"Interrupted"};
+const KICON = {block:"🧱", routine:"🔁", pomodoro:"🍅", break:"☕", meal:"🍽️", comms:"💬", move:"🏃‍♂️", restore:"🌿", interrupted:"⚡"};
+const KINDS = [["block","Block"],["routine","Routine"],["pomodoro","Pomodoro"],["break","Break"],["meal","Meal"],["comms","Comms & logistics"],["move","Movement & exercise"],["restore","Restore / off"],["interrupted","Interrupted"]].map(([k,l]) => [k, KICON[k] + " " + l]);
+const MOVE_DURS = [15,20,30,45,60,90,120,180];
+const KIND_TYPE = {block:"", routine:"Morning routine", pomodoro:"Pomodoro", break:"Break", meal:"Meal", comms:"Communication & logistics", move:"Movement & exercise", restore:"Restore / off", interrupted:"Interrupted"};
 const LONGK = k => k === "restore" || k === "interrupted";
 const LONG_DURS = [60,90,120,180,240,300];
 function longDur(field, val, r, start){ const st = start ?? r.planStart ?? 540; const rest = Math.max(60, snap5(22*60 - st)); return quickDur(field, val, r, LONG_DURS) + `<div class="quick" style="margin-top:5px"><button type="button" data-act="setdur" data-f="${field}" data-v="${rest}" data-id="${r.id}" aria-pressed="${val===rest}">Rest of the day (until 22:00 · ${fmtD(rest)})</button></div>`; }
-function longIdeas(r, field, k){ const key = k === "restore" ? "restore" : "interrupt"; const list = SET()[key] || []; const cur = splitIdeas(r[field]); const extra = cur.filter(x => !list.includes(x));
-  return `<div class="field">${fhead(k === "restore" ? "How you restored · tap all that apply" : "What interrupted the day · tap all that apply", key)}<div class="ideas">${[...list, ...extra].map(x => { const b = `<button type="button" data-act="pickIdea" data-f="${field}" data-id="${r.id}" data-v="${esc(x)}" aria-pressed="${cur.includes(x)}">${esc(x)}</button>`; return list.includes(x) ? libChip(key, x, b) : b; }).join("")}</div>${addInline(key, r, field, "New option, saved to the list")}</div>`; }
+function longIdeas(r, field, k){ const key = k === "restore" ? "restore" : k === "move" ? "move" : "interrupt"; const list = SET()[key] || []; const cur = splitIdeas(r[field]); const extra = cur.filter(x => !list.includes(x));
+  return `<div class="field">${fhead(k === "restore" ? "How you restored · tap all that apply" : k === "move" ? "What you did · tap all that apply" : "What interrupted the day · tap all that apply", key)}<div class="ideas">${[...list, ...extra].map(x => { const b = `<button type="button" data-act="pickIdea" data-f="${field}" data-id="${r.id}" data-v="${esc(x)}" aria-pressed="${cur.includes(x)}">${esc(x)}</button>`; return list.includes(x) ? libChip(key, x, b) : b; }).join("")}</div>${addInline(key, r, field, "New option, saved to the list")}</div>`; }
 const ek = r => r.actualKind || r.kind;
 /* Collapsible sections in the Actual editor; open/closed is remembered per section on this device */
 const FOLD_DEF = {turned:false, time:false, tasks:true};
@@ -992,7 +1002,7 @@ function kindRow(r, act){
   return `<div class="field"><span>${label}</span><div class="kindrow" role="group" aria-label="${label}">${KINDS.map(([k,l]) => `<button type="button" data-act="${act}" data-v="${k}" data-id="${r.id}" aria-pressed="${cur===k}">${l}</button>`).join("")}</div>${act === "akind" ? `<p class="hint">${r.actualKind ? `Planned as ${esc(planLabel(r))}. Tap that kind again to undo.` : "If you used this time for something else, pick what it became."}</p>` : ""}</div>`;
 }
 function planLabel(r){ return r.kind === "pomodoro" ? "Pomodoro" + (r.category ? " · " + r.category : "") : (r.type || KIND_TYPE[r.kind] || "Block"); }
-function actChips(r){ return r.actualKind ? chip(r.actualType || KIND_TYPE[r.actualKind] || "Block", r.actualKind === "break" ? "brk" : r.actualKind === "pomodoro" ? "pomo" : r.actualKind === "restore" ? "rst" : r.actualKind === "interrupted" ? "intr" : "") + `<span class="tag was">planned: ${esc(planLabel(r))}</span>` : typeChips(r); }
+function actChips(r){ return r.actualKind ? chip(KICON[r.actualKind] + " " + (r.actualType || KIND_TYPE[r.actualKind] || "Block"), r.actualKind === "break" ? "brk" : r.actualKind === "pomodoro" ? "pomo" : r.actualKind === "restore" ? "rst" : r.actualKind === "interrupted" ? "intr" : r.actualKind === "move" ? "mvt" : "") + `<span class="tag was">planned: ${esc(planLabel(r))}</span>` : typeChips(r); }
 function commsActual(r){
   const lib = SET().small || []; const dn = r.doneItems || [];
   const all = [...new Set([...(r.items||[]), ...lib, ...dn])];
@@ -1104,13 +1114,13 @@ function planEditor(r, d){
       <div class="field"><span>Start time</span>${timeRow("planStart", r, r.planStart, "Start time")}</div>
       <div class="field"><span>Allotted</span>${durRow("pd-" + r.id, "planDur", r, r.planDur, null)}</div>
     </div>
-    ${isBreak ? `<div class="field"><span>Choose the length</span>${quickDur("planDur", r.planDur, r, choices)}</div>` : LONGK(r.kind) ? `<div class="field"><span>Choose the length</span>${longDur("planDur", r.planDur, r)}</div>` : quickDur("planDur", r.planDur, r)}
+    ${isBreak ? `<div class="field"><span>Choose the length</span>${quickDur("planDur", r.planDur, r, choices)}</div>` : LONGK(r.kind) ? `<div class="field"><span>Choose the length</span>${longDur("planDur", r.planDur, r)}</div>` : r.kind === "move" ? `<div class="field"><span>Choose the length</span>${quickDur("planDur", r.planDur, r, MOVE_DURS)}</div>` : quickDur("planDur", r.planDur, r)}
     <p class="hint">Changing the time moves every block after it, up to the next block with a fixed time.</p>
     ${taskTimerHTML(r, d)}
     ${r.kind === "pomodoro" ? topicSel(r) + tasksPlanEditor(r) + `<label class="field"><span>Note</span><input type="text" autocomplete="off" id="pc-${r.id}" data-f="content" data-id="${r.id}" value="${esc(r.content)}" placeholder="Optional reminder for this session"></label>`
-      : `${r.kind === "break" || LONGK(r.kind) ? "" : `<label class="field"><span>Type of doing</span><input type="text" autocomplete="off" list="types" id="pt-${r.id}" data-f="type" data-id="${r.id}" value="${esc(r.type)}" placeholder="e.g. Deep work"></label>`}
+      : `${r.kind === "break" || LONGK(r.kind) || r.kind === "move" ? "" : `<label class="field"><span>Type of doing</span><input type="text" autocomplete="off" list="types" id="pt-${r.id}" data-f="type" data-id="${r.id}" value="${esc(r.type)}" placeholder="e.g. Deep work"></label>`}
          ${r.kind === "break" ? ideasHTML(r, "content", r.planDur) : ""}
-         ${LONGK(r.kind) ? longIdeas(r, "content", r.kind) : ""}
+         ${LONGK(r.kind) || r.kind === "move" ? longIdeas(r, "content", r.kind) : ""}
          ${r.kind === "routine" || r.kind === "comms" ? routinePicker(r, "plan") : ""}
          <label class="field"><span>${r.kind === "break" ? "Break activity" : "Content"}</span><textarea id="pc-${r.id}" data-f="content" data-id="${r.id}" rows="2" placeholder="${r.kind === "break" ? "Pick an idea above or write your own" : "What this block holds"}">${esc(r.content)}</textarea></label>`}
     <label class="check"><input type="checkbox" id="pf-${r.id}" data-f="fixed" data-id="${r.id}" ${r.fixed ? "checked" : ""}> Fixed time (a call, a session): other changes don't move it</label>
@@ -1127,10 +1137,11 @@ function actualEditor(r, d, ctx){
   const choices = r.choices || (isBreak ? choicesFor(r.planDur || a.dur) : null);
   return `<div class="editor">
     ${r.inserted ? `${kindRow(r)}
-      ${r.kind === "break" || LONGK(r.kind) ? "" : `<label class="field"><span>Type of doing</span><input type="text" autocomplete="off" list="types" id="at-${r.id}" data-f="type" data-id="${r.id}" value="${esc(r.type)}" placeholder="e.g. Unplanned call"></label>`}
+      ${r.kind === "break" || LONGK(r.kind) || r.kind === "move" ? "" : `<label class="field"><span>Type of doing</span><input type="text" autocomplete="off" list="types" id="at-${r.id}" data-f="type" data-id="${r.id}" value="${esc(r.type)}" placeholder="e.g. Unplanned call"></label>`}
       ${r.kind === "pomodoro" ? topicSel(r) : ""}
       ${r.kind === "break" ? ideasHTML(r, "content", a.dur) : ""}
       ${LONGK(r.kind) ? `<div class="field"><span>Length</span>${longDur("actualDur", r.actualDur, r, a.start)}</div>` + longIdeas(r, "content", r.kind) : ""}
+      ${r.kind === "move" ? `<div class="field"><span>Length</span>${quickDur("actualDur", r.actualDur, r, MOVE_DURS)}</div>` + longIdeas(r, "content", "move") : ""}
       ${r.kind === "pomodoro" ? "" : `<label class="field"><span>What came up</span><textarea id="ac-${r.id}" data-f="content" data-id="${r.id}" rows="2" placeholder="What happened">${esc(r.content)}</textarea></label>`}`
     : `<div class="seg st4" role="group" aria-label="Status">
         ${[["todo","Not yet"],["active","In progress"],["done","Done"],["skipped","Skipped"]].map(([k,l]) => `<button type="button" data-act="status" data-v="${k}" data-id="${r.id}" aria-pressed="${st===k}">${l}</button>`).join("")}
@@ -1148,6 +1159,7 @@ function actualEditor(r, d, ctx){
     ${K === "pomodoro" && !r.actualKind ? tasksActualEditor(r, d) : ""}
     ${K === "comms" ? commsActual(r) : K === "routine" ? routinePicker(r, "actual") : ""}
     ${!r.inserted && K === "break" ? ideasHTML(r, "revised", r.actualDur ?? r.planDur) : ""}
+    ${!r.inserted && K === "move" ? `<div class="field"><span>How long it was</span>${quickDur("actualDur", r.actualDur ?? r.planDur, r, MOVE_DURS)}</div>` + longIdeas(r, "revised", "move") : ""}
     ${!r.inserted && LONGK(K) ? `<div class="field"><span>How long it was</span>${longDur("actualDur", r.actualDur ?? r.planDur, r, a.start)}</div>` + longIdeas(r, "revised", K) : ""}
     ${r.inserted || (r.kind === "pomodoro" && !r.actualKind) ? "" : `<label class="field"><span>${K === "break" ? "What you actually did" : "Revised content (what you actually did)"}</span><textarea id="ar-${r.id}" data-f="revised" data-id="${r.id}" rows="2" placeholder="Leave empty if it went as planned">${esc(r.revised)}</textarea></label>`}
     ${r.kind === "pomodoro" && !r.actualKind ? `<details class="cmtbox field" data-cmt="${r.id}" ${S.cmtOpen && S.cmtOpen[r.id] ? "open" : ""}><summary>Comments <span class="pv">${esc((r.comments||"").split("\n")[0])}</span></summary><textarea id="am-${r.id}" data-f="comments" data-id="${r.id}" rows="4" placeholder="How it went">${esc(r.comments)}</textarea></details>`
@@ -1342,7 +1354,7 @@ function renderReview(d){
   const done = ps.filter(r => r.status === "done").length, skipped = ps.filter(r => r.status === "skipped").length;
   const changed = ps.filter(r => r.revised).length, came = d.rows.filter(r => r.inserted && !LONGK(ek(r)));
   const kindMin = k => d.rows.filter(r => r.status !== "skipped" && ek(r) === k).reduce((s2, r) => s2 + ctx[r.id].dur, 0);
-  const restMin = kindMin("restore"), intrMin = kindMin("interrupted");
+  const moveMin = kindMin("move"), restMin = kindMin("restore"), intrMin = kindMin("interrupted");
   const avg = k => { const v = d.rows.filter(r => r[k]).map(r => r[k]); return v.length ? (v.reduce((a,b)=>a+b,0)/v.length).toFixed(1) : "–"; };
   const over = ps.filter(r => r.status !== "skipped" && r.actualDur != null && !LONGK(ek(r))).reduce((s,r) => s + (r.actualDur - r.planDur), 0);
   const label = r => esc(r.kind === "pomodoro" ? "Pomodoro" + (r.category ? " · " + r.category : "") : (r.type || r.content));
@@ -1360,6 +1372,7 @@ function renderReview(d){
       <div class="stat"><span>Actual</span><b>${fmtD(actual)}</b><small>${over ? (over>0?"+":"") + over + " min over allotted" : "on allotted time"}</small></div>
       <div class="stat"><span>Done</span><b>${done}/${ps.length}</b><small>${changed} changed · ${skipped} skipped</small></div>
       <div class="stat"><span>Came up</span><b>${came.length}</b><small>${fmtD(came.reduce((s,r)=>s+ctx[r.id].dur,0))}</small></div>
+      ${moveMin ? `<div class="stat"><span>🏃‍♂️ Movement</span><b>${fmtD(moveMin)}</b><small>exercise and movement</small></div>` : ""}
       ${restMin ? `<div class="stat"><span>🌿 Restore / off</span><b>${fmtD(restMin)}</b><small>rest is part of the day</small></div>` : ""}
       ${intrMin ? `<div class="stat"><span>⚡ Interrupted</span><b>${fmtD(intrMin)}</b><small>outside your control</small></div>` : ""}
       <div class="stat"><span>Energy</span><b>${avg("energy")}</b><small>average of 5</small></div>
@@ -1488,6 +1501,7 @@ function setKind(r, k){
   r.kind = k;
   if (k === "comms") { if (!r.items) r.items = []; r.type = KIND_TYPE.comms; return; }
   if (k === "routine") { if (!r.items) r.items = []; if (!r.type || /breath|meditation|dispenza/i.test(r.type)) r.type = "Morning routine"; return; }
+  if (k === "move") { r.type = ""; return; }
   if (LONGK(k)) { r.type = ""; if ((r.planDur || 0) < 60) r.planDur = 60; return; }
   if (k === "pomodoro") { r.type = "Pomodoro"; if (!r.tasks.length) r.tasks = [mkTask(),mkTask(),mkTask()]; }
   else if (k === "break") { r.type = (r.planDur||0) >= 45 ? "Long break" : "Break"; }
@@ -2231,8 +2245,10 @@ function blCard(it, dep, vis){
     <div class="khead"><span class="grip" data-grip="${it.id}" aria-label="Drag to move" title="Drag to move">⠿</span><button type="button" class="ktitle" data-act="blOpen" data-b="${it.id}">${sub ? `<span class="kpar">↳ ${esc(sub)}</span>` : ""}<span class="kt">${it.parent ? "" : `<span class="rk">#${i + 1}</span>`}${ic ? `<span class="kic">${ic}</span>` : ""}${esc(it.title)}</span></button>${nk ? `<button type="button" class="ktog" data-act="blColl" data-b="${it.id}" aria-expanded="${!cl}" aria-label="${cl ? "Expand" : "Collapse"}" title="${cl ? "Show" : "Hide"} its ${nk} item${nk === 1 ? "" : "s"}">${cl ? "▸ " + nk : "▾"}</button>` : ""}</div>
     <div class="kmeta">${badges(it, !it.parent)}</div>
     <div class="kbtns">
+      <button type="button" data-act="blEdge" data-b="${it.id}" data-v="top" aria-label="Move to the very top" title="Very top" ${i <= 0 ? "disabled" : ""}>⤒</button>
       <button type="button" data-act="blPrio" data-b="${it.id}" data-v="-1" aria-label="Higher priority" title="${it.parent ? "Up within the project" : "Higher priority (its tasks move along)"}" ${i <= 0 ? "disabled" : ""}>↑</button>
       <button type="button" data-act="blPrio" data-b="${it.id}" data-v="1" aria-label="Lower priority" title="${it.parent ? "Down within the project" : "Lower priority (its tasks move along)"}" ${i >= peers.length - 1 ? "disabled" : ""}>↓</button>
+      <button type="button" data-act="blEdge" data-b="${it.id}" data-v="bottom" aria-label="Move to the very bottom" title="Very bottom" ${i >= peers.length - 1 ? "disabled" : ""}>⤓</button>
       <span class="sp"></span>
       <button type="button" data-act="blRemind" data-b="${it.id}" aria-label="Reminders" title="Reminders: add for today or search">🔔</button>
       <button type="button" data-act="blToday" data-b="${it.id}" aria-label="Add to today's picks" title="Add to today's picks">🍅</button>
@@ -2704,6 +2720,9 @@ function blAction(el, act){
       blMove(it, to); touchBacklog(); render(); toast(`${BCOL[to].e} Moved to ${BCOL[to].l}`); if (to === "done" && it.actual == null && !it.parent && false) setTimeout(() => blSheet(it.id, "#bs-act"), 250); return; }
     case "blPrio": { if (!it) return; const vis = new Set(blFiltered().map(x => x.id)), peers = blPeers(it, vis), i = peers.indexOf(it), o = peers[i + Number(v)]; if (!o) return;
       const arr = BL().items, a = arr.indexOf(it), b = arr.indexOf(o); arr[a] = o; arr[b] = it; touchBacklog(); render(); return; }
+    case "blEdge": { if (!it) return; const vis = new Set(blFiltered().map(x => x.id)), peers = blPeers(it, vis); if (peers.length < 2) return;
+      const arr = BL().items, tgt = v === "top" ? peers[0] : peers[peers.length - 1]; if (tgt === it) return;
+      arr.splice(arr.indexOf(it), 1); const k = arr.indexOf(tgt); arr.splice(v === "top" ? k : k + 1, 0, it); touchBacklog(); render(); return; }
     case "blColl": { if (!it) return; const c = new Set(S.bl.collapsed || []); c.has(it.id) ? c.delete(it.id) : c.add(it.id); S.bl.collapsed = [...c]; blSaveUI(); render(); return; }
     case "blCollAll": S.bl.collapsed = v === "1" ? BL().items.filter(x => blKids(x.id).length).map(x => x.id) : []; blSaveUI(); render(); return;
     case "blAi": blAiRun(); return;
