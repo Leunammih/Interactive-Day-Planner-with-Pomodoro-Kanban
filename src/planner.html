@@ -184,6 +184,8 @@ select.wide{width:100%;font-family:var(--f-body)}
 .chip.pomo{background:var(--accent);color:var(--accent-ink)}
 .chip.brk{background:var(--accent-soft);color:var(--accent)}
 .chip.rst{background:color-mix(in srgb,var(--good) 18%,var(--surface));color:var(--good)}
+.chip.ses{background:color-mix(in srgb,#7c3aed 14%,var(--surface));color:#6d28d9}
+.item.k-session .card,.item.k-therapy .card{background:color-mix(in srgb,#7c3aed 4%,var(--surface))}
 .chip.mvt{background:color-mix(in srgb,#e8710a 16%,var(--surface));color:#b45309}
 .item.k-move .card{background:color-mix(in srgb,#e8710a 5%,var(--surface))}
 .chip.intr{background:var(--came-soft);color:var(--came)}
@@ -948,6 +950,7 @@ function typeChips(r){
   const ic = KICON[r.kind] + " ";
   if (r.kind === "move") return chip(ic + (r.type || "Movement & exercise"), "mvt");
   if (r.kind === "meal") return chip(ic + (r.type || "Meal"));
+  if (r.kind === "session" || r.kind === "therapy") return chip(ic + (r.type || KIND_TYPE[r.kind]), "ses");
   if (r.kind === "comms") return chip(ic + (r.type || "Communication & logistics"));
   if (r.kind === "block" && r.type) return chip(ic + r.type);
   if (r.kind === "pomodoro") return chip("🍅 Pomodoro", "pomo") + (r.category ? chip(r.category) : "") + (T && T.rowId === r.id && !T.done ? `<span class="tag run">running</span>` : "");
@@ -994,10 +997,10 @@ function headHTML(r, ctx){
   return `<div class="meta">${actChips(r)}<span class="num">${durTxt}</span>${tag}</div>${body}${r.comments ? `<div class="cmt">${esc(r.comments)}</div>` : ""}${rates}`;
 }
 
-const KICON = {block:"🧱", routine:"🔁", pomodoro:"🍅", break:"☕", meal:"🍽️", comms:"💬", move:"🏃‍♂️", restore:"🌿", interrupted:"⚡"};
-const KINDS = [["block","Block"],["routine","Routine"],["pomodoro","Pomodoro"],["break","Break"],["meal","Meal"],["comms","Comms & logistics"],["move","Movement & exercise"],["restore","Restore / off"],["interrupted","Interrupted"]].map(([k,l]) => [k, KICON[k] + " " + l]);
+const KICON = {block:"🧱", routine:"🔁", pomodoro:"🍅", break:"☕", meal:"🍽️", comms:"💬", move:"🏃‍♂️", session:"🤝", therapy:"🫶", restore:"🌿", interrupted:"⚡"};
+const KINDS = [["block","Block"],["routine","Routine"],["pomodoro","Pomodoro"],["break","Break"],["meal","Meal"],["comms","Comms & logistics"],["move","Movement & exercise"],["session","Coaching / bodywork session"],["therapy","Therapy"],["restore","Restore / off"],["interrupted","Interrupted"]].map(([k,l]) => [k, KICON[k] + " " + l]);
 const MOVE_DURS = [15,20,30,45,60,90,120,180];
-const KIND_TYPE = {block:"", routine:"Morning routine", pomodoro:"Pomodoro", break:"Break", meal:"Meal", comms:"Communication & logistics", move:"Movement & exercise", restore:"Restore / off", interrupted:"Interrupted"};
+const KIND_TYPE = {block:"", routine:"Morning routine", pomodoro:"Pomodoro", break:"Break", meal:"Meal", comms:"Communication & logistics", move:"Movement & exercise", session:"Coaching / bodywork session", therapy:"Therapy", restore:"Restore / off", interrupted:"Interrupted"};
 const LONGK = k => k === "restore" || k === "interrupted";
 const LONG_DURS = [60,90,120,180,240,300];
 function longDur(field, val, r, start){ const st = start ?? r.planStart ?? 540; const rest = Math.max(60, snap5(22*60 - st)); return quickDur(field, val, r, LONG_DURS) + `<div class="quick" style="margin-top:5px"><button type="button" data-act="setdur" data-f="${field}" data-v="${rest}" data-id="${r.id}" aria-pressed="${val===rest}">Rest of the day (until 22:00 · ${fmtD(rest)})</button></div>`; }
@@ -1016,7 +1019,7 @@ function kindRow(r, act){
   return `<div class="field"><span>${label}</span><div class="kindrow" role="group" aria-label="${label}">${KINDS.map(([k,l]) => `<button type="button" data-act="${act}" data-v="${k}" data-id="${r.id}" aria-pressed="${cur===k}">${l}</button>`).join("")}</div>${act === "akind" ? `<p class="hint">${r.actualKind ? `Planned as ${esc(planLabel(r))}. Tap that kind again to undo.` : "If you used this time for something else, pick what it became."}</p>` : ""}</div>`;
 }
 function planLabel(r){ return r.kind === "pomodoro" ? "Pomodoro" + (r.category ? " · " + r.category : "") : (r.type || KIND_TYPE[r.kind] || "Block"); }
-function actChips(r){ return r.actualKind ? chip(KICON[r.actualKind] + " " + (r.actualType || KIND_TYPE[r.actualKind] || "Block"), r.actualKind === "break" ? "brk" : r.actualKind === "pomodoro" ? "pomo" : r.actualKind === "restore" ? "rst" : r.actualKind === "interrupted" ? "intr" : r.actualKind === "move" ? "mvt" : "") + `<span class="tag was">planned: ${esc(planLabel(r))}</span>` : typeChips(r); }
+function actChips(r){ return r.actualKind ? chip(KICON[r.actualKind] + " " + (r.actualType || KIND_TYPE[r.actualKind] || "Block"), r.actualKind === "break" ? "brk" : r.actualKind === "pomodoro" ? "pomo" : r.actualKind === "restore" ? "rst" : r.actualKind === "interrupted" ? "intr" : r.actualKind === "move" ? "mvt" : r.actualKind === "session" || r.actualKind === "therapy" ? "ses" : "") + `<span class="tag was">planned: ${esc(planLabel(r))}</span>` : typeChips(r); }
 function commsActual(r){
   const lib = SET().small || []; const dn = r.doneItems || [];
   const all = [...new Set([...(r.items||[]), ...lib, ...dn])];
@@ -1369,7 +1372,7 @@ function renderReview(d){
   const done = ps.filter(r => r.status === "done").length, skipped = ps.filter(r => r.status === "skipped").length;
   const changed = ps.filter(r => r.revised).length, came = d.rows.filter(r => r.inserted && !LONGK(ek(r)));
   const kindMin = k => d.rows.filter(r => r.status !== "skipped" && ek(r) === k).reduce((s2, r) => s2 + ctx[r.id].dur, 0);
-  const moveMin = kindMin("move"), restMin = kindMin("restore"), intrMin = kindMin("interrupted");
+  const sesMin = kindMin("session") + kindMin("therapy"), moveMin = kindMin("move"), restMin = kindMin("restore"), intrMin = kindMin("interrupted");
   const avg = k => { const v = d.rows.filter(r => r[k]).map(r => r[k]); return v.length ? (v.reduce((a,b)=>a+b,0)/v.length).toFixed(1) : "–"; };
   const over = ps.filter(r => r.status !== "skipped" && r.actualDur != null && !LONGK(ek(r))).reduce((s,r) => s + (r.actualDur - r.planDur), 0);
   const label = r => esc(r.kind === "pomodoro" ? "Pomodoro" + (r.category ? " · " + r.category : "") : (r.type || r.content));
@@ -1387,6 +1390,7 @@ function renderReview(d){
       <div class="stat"><span>Actual</span><b>${fmtD(actual)}</b><small>${over ? (over>0?"+":"") + over + " min over allotted" : "on allotted time"}</small></div>
       <div class="stat"><span>Done</span><b>${done}/${ps.length}</b><small>${changed} changed · ${skipped} skipped</small></div>
       <div class="stat"><span>Came up</span><b>${came.length}</b><small>${fmtD(came.reduce((s,r)=>s+ctx[r.id].dur,0))}</small></div>
+      ${sesMin ? `<div class="stat"><span>🤝 Sessions & therapy</span><b>${fmtD(sesMin)}</b><small>coaching, bodywork, therapy</small></div>` : ""}
       ${moveMin ? `<div class="stat"><span>🏃‍♂️ Movement</span><b>${fmtD(moveMin)}</b><small>exercise and movement</small></div>` : ""}
       ${restMin ? `<div class="stat"><span>🌿 Restore / off</span><b>${fmtD(restMin)}</b><small>rest is part of the day</small></div>` : ""}
       ${intrMin ? `<div class="stat"><span>⚡ Interrupted</span><b>${fmtD(intrMin)}</b><small>outside your control</small></div>` : ""}
