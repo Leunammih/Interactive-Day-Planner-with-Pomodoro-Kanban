@@ -72,6 +72,7 @@ ol.tl{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px}
 .drift{display:inline-block;margin-top:4px;font-size:11px;padding:1px 5px;border-radius:6px;background:var(--sunk);color:var(--muted)}
 .drift.late{background:var(--came-soft);color:var(--came)} .drift.early{background:var(--accent-soft);color:var(--accent)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);min-width:0;overflow:hidden}
+.card{position:relative}.addbl{position:absolute;right:6px;bottom:6px;width:24px;height:24px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--accent);font-size:16px;line-height:1;padding:0;cursor:pointer;opacity:.75;z-index:2}.addbl:hover{opacity:1;border-color:var(--accent)}.card>.head{padding-right:34px}
 .item.inserted .card{border-color:var(--came);border-style:dashed}
 .item.skipped .head .content{text-decoration:line-through;color:var(--muted)}
 .item.open .card{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
@@ -1209,7 +1210,7 @@ function itemHTML(r, d, ctx){
   return `<li class="${cls}" data-row="${r.id}">
     <button type="button" class="time" data-act="wheel" data-kind="time" data-f="${S.view === "plan" ? "planStart" : "actualStart"}" data-id="${r.id}" data-title="${S.view === "plan" ? "Start time" : "Started at"}" data-slot="time" aria-label="Change start time">${timeHTML(r, ctx)}</button>
     <div class="card">${toolsHTML(r, d)}<button class="head" data-act="toggle" data-id="${r.id}" aria-expanded="${open}" data-slot="head">${headHTML(r, ctx)}</button>
-    ${open ? (S.view === "plan" ? planEditor(r, d) : actualEditor(r, d, ctx)) : ""}</div></li>`;
+    ${open ? (S.view === "plan" ? planEditor(r, d) : actualEditor(r, d, ctx)) : ""}<button type="button" class="addbl" data-act="${S.view === "plan" ? "addBelow" : "cameUp"}" data-id="${r.id}" aria-label="Add a block below" title="Add a block below">+</button></div></li>`;
 }
 function footHTML(d, ctx){
   const ps = planRows(d);
