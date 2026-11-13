@@ -1013,7 +1013,7 @@ function longIdeas(r, field, k){ const key = k === "restore" ? "restore" : k ===
   return `<div class="field">${fhead(k === "restore" ? "How you restored · tap all that apply" : k === "move" ? "What you did · tap all that apply" : "What interrupted the day · tap all that apply", key)}<div class="ideas">${[...list, ...extra].map(x => { const b = `<button type="button" data-act="pickIdea" data-f="${field}" data-id="${r.id}" data-v="${esc(x)}" aria-pressed="${cur.includes(x)}">${esc(x)}</button>`; return list.includes(x) ? libChip(key, x, b) : b; }).join("")}</div>${addInline(key, r, field, "New option, saved to the list")}</div>`; }
 const ek = r => r.actualKind || r.kind;
 /* Collapsible sections in the Actual editor; open/closed is remembered per section on this device */
-const FOLD_DEF = {turned:false, time:false, tasks:true};
+const FOLD_DEF = {turned:false, time:true, tasks:true};
 let FOLD = {}; try { FOLD = JSON.parse(localStorage.getItem("dayStructure.folds") || "{}") || {}; } catch(e){ FOLD = {}; }
 const foldOpen = k => (k in FOLD ? FOLD[k] : FOLD_DEF[k]);
 function fold(k, label, pv, inner){ return `<details class="sfold" data-fold="${k}" ${foldOpen(k) ? "open" : ""}><summary>${label} <span class="pv">${pv || ""}</span></summary><div class="fbody">${inner}</div></details>`; }
