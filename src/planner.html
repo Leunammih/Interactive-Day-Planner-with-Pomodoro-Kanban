@@ -419,6 +419,10 @@ body.v-backlog .daynav{display:none}
 .drop-before.drop-up{box-shadow:-14px -3px 0 0 var(--came)} .drop-after.drop-up{box-shadow:-14px 3px 0 0 var(--came)}
 .drop-no{outline:2px dashed var(--bad);outline-offset:1px}
 #bdlbl{position:fixed;z-index:41;pointer-events:none;max-width:220px;background:var(--ink);color:var(--surface);font-size:12.5px;line-height:1.3;padding:6px 9px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.kgrpw{display:grid;gap:2px}
+.kgbtns{display:flex;gap:2px;padding-left:20px}
+.kgbtns button{border:0;background:none;font-size:15px;min-width:34px;min-height:30px;color:hsl(var(--h) 45% 40%)}
+.kgbtns button:disabled{opacity:.3}
 .kgrp small{font-weight:500;color:var(--muted)}
 .aibox{display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
 .aibox textarea{min-height:52px}
@@ -1861,10 +1865,10 @@ document.addEventListener("pointerdown", () => { if (mediaEl && mediaEl.paused &
 document.addEventListener("toggle", e => { if (e.target.id === "ideasPanel") S.ideasOpen = e.target.open; }, true);
 document.addEventListener("toggle", e => { const el = e.target; if (el.dataset && el.dataset.cmt) { S.cmtOpen = S.cmtOpen || {}; S.cmtOpen[el.dataset.cmt] = el.open; } }, true);
 /* Moving an item up/down keeps its arrow under the finger: the list moves around it */
-const MOVE_ACTS = new Set(["up","down","tUp","tDown","pickMv","blPrio","blEdge","pkUp","pkDown"]);
+const MOVE_ACTS = new Set(["up","down","tUp","tDown","pickMv","blPrio","blEdge","blGrp","pkUp","pkDown"]);
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-act]"); if (!el || !MOVE_ACTS.has(el.dataset.act)) return;
-  const keys = ["act","id","t","k","b","v"].filter(k => el.dataset[k] != null), sel = keys.map(k => `[data-${k}="${CSS.escape(el.dataset[k])}"]`).join("");
+  const keys = ["act","id","t","k","b","c","v"].filter(k => el.dataset[k] != null), sel = keys.map(k => `[data-${k}="${CSS.escape(el.dataset[k])}"]`).join("");
   const y0 = el.getBoundingClientRect().top, ix = Math.max(0, [...document.querySelectorAll(sel)].indexOf(el)), pick = q => { const all = document.querySelectorAll(q); return all[Math.min(ix, all.length - 1)] || null; };
   setTimeout(() => { let n = pick(sel);
     if (!n || n.disabled) { const alt = el.dataset.act === "blEdge" ? null : el.dataset.v === "-1" ? "1" : el.dataset.v === "1" ? "-1" : null; const altAct = {up:"down",down:"up",tUp:"tDown",tDown:"tUp"}[el.dataset.act];
@@ -2259,11 +2263,11 @@ function blColRows(col, vis){
   return rows;
 }
 /* neighbours an item can swap places with: projects among projects in the column, sub-tasks among their own siblings */
-function blPeers(it, vis){ return (it.parent ? blKids(it.parent) : BL().items.filter(x => !x.parent)).filter(x => x.col === it.col && vis.has(x.id)); }
+function blPeers(it, vis){ if (!it.parent) return blColRows(it.col, vis).filter(r => r.dep === 0 && r.type !== "done").map(r => r.it); return blKids(it.parent).filter(x => x.col === it.col && vis.has(x.id)); }
 function blCard(it, dep, vis){
   const root = blRoot(it), peers = blPeers(it, vis), i = peers.indexOf(it);
   const sub = dep > 1 ? blPath(it).split(" › ").slice(1).join(" › ") : "";
-  const nk = blDesc(it.id).length, cl = blColl(it.id), ic = blIcons(it, true);
+  const nk = blDesc(it.id).length, cl = blColl(it.id), ic = blIcons(it);
   return `<div class="kcard ${it.parent ? "sub" : "proj"} d${dep} ${isClosed(it) ? "is-done" : ""}" style="--h:${hueOf(root.title)}" data-bl="${it.id}">
     <div class="khead"><span class="grip" data-grip="${it.id}" aria-label="Drag to move" title="Drag to move">⠿</span><button type="button" class="ktitle" data-act="blOpen" data-b="${it.id}">${sub ? `<span class="kpar">↳ ${esc(sub)}</span>` : ""}<span class="kt">${it.parent ? "" : `<span class="rk">#${i + 1}</span>`}${ic ? `<span class="kic">${ic}</span>` : ""}${esc(it.title)}</span></button>${nk ? `<button type="button" class="ktog" data-act="blColl" data-b="${it.id}" aria-expanded="${!cl}" aria-label="${cl ? "Expand" : "Collapse"}" title="${cl ? "Show" : "Hide"} its ${nk} item${nk === 1 ? "" : "s"}">${cl ? "▸ " + nk : "▾"}</button>` : ""}</div>
     <div class="kmeta">${badges(it, !it.parent)}</div>
@@ -2279,8 +2283,11 @@ function blCard(it, dep, vis){
     <div class="kmove"><span>Move to</span>${BCOLS.filter(([k]) => k !== it.col).map(([k, l, e]) => `<button type="button" data-act="blTo" data-b="${it.id}" data-v="${k}" aria-label="Move to ${l}" title="${l}">${e}</button>`).join("")}</div></div>`;
 }
 function blColHTML(col, vis){
-  return blColRows(col, vis).map(r => {
-    if (r.type === "head") return `<button type="button" class="kgrp" style="--h:${hueOf(r.it.title)}" data-act="blOpen" data-b="${r.it.id}" data-head="${r.it.id}"><span>${BCOL[r.it.col].e}</span><span>${blIcons(r.it) ? blIcons(r.it) + " " : ""}${esc(r.it.title)}${r.hidden ? ` <small>(${r.hidden} hidden)</small>` : ""}</span></button>`;
+  const rows = blColRows(col, vis), grps = rows.filter(r => r.dep === 0 && r.type !== "done").map(r => r.it.id);
+  return rows.map(r => {
+    if (r.type === "head") { const gi = grps.indexOf(r.it.id), dis = (c) => c ? "disabled" : "";
+      return `<div class="kgrpw"><button type="button" class="kgrp" style="--h:${hueOf(r.it.title)}" data-act="blOpen" data-b="${r.it.id}" data-head="${r.it.id}"><span>${BCOL[r.it.col].e}</span><span>${blIcons(r.it) ? blIcons(r.it) + " " : ""}${esc(r.it.title)}${r.hidden ? ` <small>(${r.hidden} hidden)</small>` : ""}</span></button>
+      <div class="kgbtns" style="--h:${hueOf(r.it.title)}"><button type="button" data-act="blGrp" data-b="${r.it.id}" data-c="${col}" data-v="top" aria-label="Move this project's group to the top" ${dis(gi <= 0)}>⤒</button><button type="button" data-act="blGrp" data-b="${r.it.id}" data-c="${col}" data-v="-1" aria-label="Move this project's group up" ${dis(gi <= 0)}>↑</button><button type="button" data-act="blGrp" data-b="${r.it.id}" data-c="${col}" data-v="1" aria-label="Move this project's group down" ${dis(gi >= grps.length - 1)}>↓</button><button type="button" data-act="blGrp" data-b="${r.it.id}" data-c="${col}" data-v="bottom" aria-label="Move this project's group to the bottom" ${dis(gi >= grps.length - 1)}>⤓</button></div></div>`; }
     if (r.type === "done") return `<div class="kdone d1" style="--h:${hueOf(r.it.title)}">${r.list.map(([k, dep]) => `<button type="button" data-act="blOpen" data-b="${k.id}" style="padding-left:${(dep - 1) * 12 + 6}px">☑️ <s>${esc(k.title)}</s></button>`).join("")}</div>`;
     return blCard(r.it, r.dep, vis);
   }).join("");
@@ -2761,6 +2768,10 @@ function blAction(el, act){
     case "blEdge": { if (!it) return; const vis = new Set(blFiltered().map(x => x.id)), peers = blPeers(it, vis); if (peers.length < 2) return;
       const arr = BL().items, tgt = v === "top" ? peers[0] : peers[peers.length - 1]; if (tgt === it) return;
       arr.splice(arr.indexOf(it), 1); const k = arr.indexOf(tgt); arr.splice(v === "top" ? k : k + 1, 0, it); touchBacklog(); render(); return; }
+    case "blGrp": { if (!it) return; const vis = new Set(blFiltered().map(x => x.id)), col = el.dataset.c;
+      const grps = blColRows(col, vis).filter(r => r.dep === 0 && r.type !== "done").map(r => r.it), i = grps.indexOf(it); if (i < 0) return;
+      const tgt = v === "top" ? grps[0] : v === "bottom" ? grps[grps.length - 1] : grps[i + Number(v)]; if (!tgt || tgt === it) return;
+      const arr = BL().items, after = v === "bottom" || Number(v) > 0; arr.splice(arr.indexOf(it), 1); const k = arr.indexOf(tgt); arr.splice(after ? k + 1 : k, 0, it); touchBacklog(); render(); return; }
     case "blColl": { if (!it) return; const c = new Set(S.bl.collapsed || []); c.has(it.id) ? c.delete(it.id) : c.add(it.id); S.bl.collapsed = [...c]; blSaveUI(); render(); return; }
     case "blCollAll": S.bl.collapsed = v === "1" ? BL().items.filter(x => blKids(x.id).length).map(x => x.id) : []; blSaveUI(); render(); return;
     case "blAi": blAiRun(); return;
