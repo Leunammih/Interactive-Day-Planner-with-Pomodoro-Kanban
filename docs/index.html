@@ -374,7 +374,8 @@ ul.ritems li.done{color:var(--muted);text-decoration:line-through}
 .head .meta{padding-right:104px}
 .pomo-rev li{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:grid;gap:4px;font-size:14px}
 /* v26: backlog kanban */
-.tabs{grid-template-columns:repeat(5,1fr)}
+.tabs{grid-template-columns:repeat(6,1fr)}
+.tabs a{font-size:13px}
 .tabs a{padding-inline:2px}
 .wrap{transition:max-width .2s}
 .wrap.wide{max-width:1320px}
@@ -529,6 +530,38 @@ details.addf>summary::before{width:30px;height:30px;font-size:17px}
 .bl-q{margin:8px 0 0}
 .pk .pnote{font-size:13px;color:var(--muted);white-space:pre-wrap}
 
+/* Everest, MITs and LITs */
+.ev{margin-top:14px;display:grid;gap:14px}
+.ev .lead{margin:0;color:var(--muted);font-size:14px}
+.ev .chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--muted)}
+.ev .chain b{background:var(--accent-soft);color:var(--ink);border-radius:999px;padding:3px 9px;font-weight:600}
+.evcard{padding:12px 13px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);display:grid;gap:10px}
+.evcard h2{margin:0;font-family:var(--f-display);font-size:16px}
+.evcard .gt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start}
+.evcard .gt input{font-weight:700}
+.evcard .two{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:8px}
+@media (max-width:520px){.evcard .two{grid-template-columns:1fr}}
+.evsteps{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.evsteps li{display:grid;grid-template-columns:24px 128px minmax(0,1fr) 150px 30px;grid-template-areas:"c l t d x";gap:6px;align-items:center}
+.evsteps li>input[type=checkbox]{grid-area:c}.evsteps li>select{grid-area:l}.evsteps li>input[type=text]{grid-area:t}.evsteps li>input[type=date]{grid-area:d}.evsteps li>.x{grid-area:x}
+.evsteps li.done input[type=text]{text-decoration:line-through;color:var(--muted)}
+.evsteps select,.evsteps input[type=date],.mt .evsel select{font-family:inherit;border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:6px 6px;font-size:14px;min-width:0;color:var(--ink)}
+.evsteps input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
+@media (max-width:620px){.evsteps li{grid-template-columns:24px minmax(0,1fr) minmax(0,1fr) 30px;grid-template-areas:"c t t x" ". l d ."}}
+.evsteps .x,.evcard .x{border:0;background:none;color:var(--muted);font-size:20px;line-height:1;padding:4px}
+.evbar{height:8px;border-radius:999px;background:var(--sunk);overflow:hidden}
+.evbar i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.evmeta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted)}
+.evmeta b{color:var(--ink);font-family:var(--f-mono);font-weight:600}
+.evline{font-size:13px;color:var(--muted);margin:0}
+.evline b{color:var(--ink)}
+.mt .evsel{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--muted);margin-left:38px}
+.mt .evsel select{font-size:13px;padding:4px 6px;max-width:100%}
+.span{width:100%;border-collapse:collapse;font-size:14px}
+.span th,.span td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+.span th{font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.span td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.span tr.best td{background:var(--accent-soft)}
 </style>
 
 <div class="wrap">
@@ -546,6 +579,7 @@ details.addf>summary::before{width:30px;height:30px;font-size:17px}
     <div id="timerBar" hidden role="timer" aria-live="off"></div>
     <nav class="tabs" aria-label="Views">
       <a href="#backlog" data-v="backlog">Backlog</a>
+      <a href="#everest" data-v="everest" aria-label="Mount Everest goals">⛰ Everest</a>
       <a href="#plan" data-v="plan">Plan</a>
       <a href="#actual" data-v="actual">Actual</a>
       <a href="#review" data-v="review">Review</a>
@@ -1284,22 +1318,23 @@ function priosHTML(d){
     const addable = roots.flatMap(R => blKids(R.id).filter(k => !isClosed(k) && !used.has(k.id))).slice(0, 12);
     return `<div class="mt ${done ? "done" : ""} ${mv ? "moved" : ""}"><div class="pt">
       <button type="button" class="cbox" data-act="mainTick" data-k="${i}" aria-pressed="${done}" aria-label="Main task ${i + 1} done" ${pr[i] ? "" : "disabled"}>✓</button>
-      <div class="pin"><input type="text" autocomplete="off" id="prio-${i}" data-f="prio" data-k="${i}" value="${esc(pr[i])}" placeholder="${i === 0 ? "Main task 1, e.g. Prepare the workshop" : "Main task " + (i + 1) + (i === 2 ? " (optional)" : "")}" aria-label="Main task ${i + 1}">${cx ? `<small class="hint">↳ ${esc(cx)}</small>` : ""}${mv ? `<small class="hint">→ Moved to ${esc(dShort(mv))}, waiting to be sorted there</small>` : ""}
+      <div class="pin"><input type="text" autocomplete="off" id="prio-${i}" data-f="prio" data-k="${i}" value="${esc(pr[i])}" placeholder="${i === 0 ? "MIT 1, e.g. Prepare the workshop" : "MIT " + (i + 1) + (i === 2 ? " (optional)" : "")}" aria-label="Main task ${i + 1}">${cx ? `<small class="hint">↳ ${esc(cx)}</small>` : ""}${mv ? `<small class="hint">→ Moved to ${esc(dShort(mv))}, waiting to be sorted there</small>` : ""}
         ${showN ? `<textarea id="prion-${i}" data-f="prioN" data-k="${i}" rows="1" placeholder="Notes for main task ${i + 1}" aria-label="Notes for main task ${i + 1}">${esc(pn[i] || "")}</textarea>` : ""}</div>
       ${showN ? "<span></span>" : `<button type="button" class="pnb" data-act="prioNote" data-k="${i}" aria-label="Add notes for main task ${i + 1}" title="Notes">✎</button>`}
       ${pr[i] && !done && !mv ? `<button type="button" class="pnb" data-act="mainTmr" data-k="${i}" aria-label="Move main task ${i + 1} to tomorrow" title="Move to tomorrow">→</button>` : "<span></span>"}</div>
+      ${pr[i] || i === 0 ? evSelHTML(d, i) : ""}
       ${att.length ? `<div class="mtl">${att.map(p => pkCard(d, p)).join("")}</div>` : ""}
       ${addable.length ? subBox("add" + i, "Add more from " + esc(roots.map(R => blShort(R.title)).join(", ")), addable.length, `<div class="ideas">${addable.map(k => `<button type="button" class="lib" data-act="pkAddTo" data-v="${k.id}" data-k="${i}">+ ${esc(k.title)}</button>`).join("")}</div>`, "addf") : ""}</div>`; };
   const smallLegacy = (d.small || []).map(t => `<label class="it ${t.done ? "done" : ""}"><input type="checkbox" id="sm-${t.id}" data-f="smallDone" data-k="${t.id}" ${t.done ? "checked" : ""}><span>${esc(t.name)}${smCtx(t) ? `<small class="hint" style="display:block">↳ ${esc(smCtx(t))}</small>` : ""}</span>${smallPomoBtn(t, d)}<button type="button" class="x" data-act="rmSmall" data-k="${t.id}" aria-label="Remove ${esc(t.name)}">×</button></label>`).join("");
   const lib = (SET().small || []).filter(x => !extra.some(p => p.name === x) && !(d.small || []).some(t => t.name === x));
   return `<details class="prios" id="priosBox" ${PRIO_OPEN ? "open" : ""}><summary><h2>Today's priorities</h2><span class="psm">${esc(sum)}${toSort.length ? ` · ${toSort.length} to sort` : ""}</span></summary><div class="pbody">
     <label class="field"><span>Notes on today's priorities</span><textarea id="prioNotes" data-f="prioNotes" rows="1" placeholder="What matters today, what to define, what to watch">${esc(d.prioNotes || "")}</textarea></label>
-    <h3>Main tasks of the day</h3>
+    <h3>MITs · most important tasks</h3><p class="hint">1 to 3 tasks that would make today a success. What will future-you thank you for?</p>${evTodayLine()}
     <div class="mains">${[0,1,2].map(main).join("")}</div>
     ${subBox("sort", "From the backlog · to sort", toSort.length, toSort.length ? `<div class="picks">${toSort.map(p => pkCard(d, p)).join("")}</div><p class="hint">Tap 1, 2 or 3 to put an item under that main task. Its subtasks come along.</p>` : `<p class="hint">Nothing to sort. Tap 🍅 on a backlog card, or pick a suggestion below.</p>`)}
-    ${subBox("extra", "Additional tasks taken on", extra.length + (d.small || []).length, (extra.length ? `<div class="picks">${extra.map(p => pkCard(d, p)).join("")}</div>` : "") + (smallLegacy ? `<div class="small">${smallLegacy}</div>` : "") + (!extra.length && !smallLegacy ? `<p class="hint">Tap one of the smaller tasks below to take it on.</p>` : ""))}
+    ${subBox("extra", "LITs · additional tasks taken on", extra.length + (d.small || []).length, (extra.length ? `<div class="picks">${extra.map(p => pkCard(d, p)).join("")}</div>` : "") + (smallLegacy ? `<div class="small">${smallLegacy}</div>` : "") + (!extra.length && !smallLegacy ? `<p class="hint">Tap one of the smaller tasks below to take it on.</p>` : ""))}
     ${subBox("sug", "Suggestions from the backlog", sug.length, sug.length ? `<div class="ideas">${sug.map(([col, it]) => `<button type="button" class="lib" data-act="pickAdd" data-v="${it.id}" title="${esc(blPath(it))}">${BCOL[col].e} ${esc(it.title.length > 60 ? it.title.slice(0, 58) + "…" : it.title)}${blPath(it) ? ` <small class="hint">· ${esc(blShort(blRoot(it).title))}</small>` : ""}</button>`).join("")}</div><p class="hint">In board order: the top of 🪏 Tackling, then 🪵 Backlog, then 🕰️ Waiting for.</p>` : `<p class="hint">Nothing open at the top of the board.</p>`)}
-    ${subBox("lib", "Smaller optional tasks", lib.length, `<div class="ideas">${lib.map(x => libChip("small", x, `<button type="button" class="lib" data-act="addSmall" data-v="${esc(x)}">+ ${esc(x)}</button>`)).join("")}</div>${addInline("small", null, null, "New small task, saved to the list")}<p class="hint">Tapping one adds it to Additional tasks and makes it a task in 🪏 Tackling, under “Additional tasks taken on”.</p>`)}
+    ${subBox("lib", "LIT ideas · quick wins for short gaps", lib.length, `<div class="ideas">${lib.map(x => libChip("small", x, `<button type="button" class="lib" data-act="addSmall" data-v="${esc(x)}">+ ${esc(x)}</button>`)).join("")}</div>${addInline("small", null, null, "New small task, saved to the list")}<p class="hint">Least important tasks: fast and satisfying, but they rarely move your Everest. Keep them for 15-minute gaps, or batch them into one LIT sprint. Tapping one adds it to Additional tasks and makes it a task in 🪏 Tackling, under “Additional tasks taken on”.</p>`)}
     </div></details>`;
 }
 document.addEventListener("toggle", e => { if (e.target.id === "priosBox") { PRIO_OPEN = e.target.open; try { localStorage.setItem("dayStructure.prioOpen", PRIO_OPEN ? "1" : "0"); } catch(err){} } }, true);
@@ -1403,11 +1438,13 @@ function renderReview(d){
       ${moveMin ? `<div class="stat"><span>🏃‍♂️ Movement</span><b>${fmtD(moveMin)}</b><small>exercise and movement</small></div>` : ""}
       ${restMin ? `<div class="stat"><span>🌿 Restore / off</span><b>${fmtD(restMin)}</b><small>rest is part of the day</small></div>` : ""}
       ${intrMin ? `<div class="stat"><span>⚡ Interrupted</span><b>${fmtD(intrMin)}</b><small>outside your control</small></div>` : ""}
+      ${(d.priorities || []).some(Boolean) ? `<div class="stat"><span>MITs done</span><b>${(d.priorities || []).filter((p, i) => p && (d.prioDone || [])[i]).length}/${(d.priorities || []).filter(Boolean).length}</b><small>${(d.prioEv || []).filter((g, i) => g && (d.priorities || [])[i] && (d.prioDone || [])[i]).length} moved your Everest</small></div>` : ""}
       <div class="stat"><span>Energy</span><b>${avg("energy")}</b><small>average of 5</small></div>
       <div class="stat"><span>Concentration</span><b>${avg("focus")}</b><small>average of 5</small></div>
     </div>
     <h2 class="sec">Energy and concentration</h2><div class="chart">${chartSVG(d, ctx)}</div>
     ${pomoReview(d, ctx)}
+    ${focusSpanHTML(d.date)}
     ${d.original ? `<h2 class="sec">Original plan <span class="hint">saved at ${new Date(d.original.at).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}</span></h2><ul class="cmp">${d.original.rows.map(o => `<li style="grid-template-columns:70px minmax(0,1fr)"><span class="num">${fmtT(o.start)}<br><span class="hint">${fmtD(o.dur)}</span></span><div>${chip(o.name, o.name.startsWith("Pomodoro") ? "pomo" : "")} ${esc(o.text)}</div></li>`).join("")}</ul>` : ""}
     <h2 class="sec">Plan and what it turned into</h2><ul class="cmp">${cmp || `<li><span class="hint">No blocks yet.</span></li>`}</ul>
     <h2 class="sec">What worked, what didn't</h2>
@@ -1506,6 +1543,7 @@ function render(){
   $("#prios").innerHTML = [1,2,3].map(i => `<option value="Main task ${i}"></option>`).join("") + ((d && d.priorities) || []).filter(Boolean).map(p => `<option value="${esc(p)}"></option>`).join("");
   let html;
   $(".wrap").classList.toggle("wide", S.view === "backlog"); document.body.classList.toggle("v-backlog", S.view === "backlog");
+  if (S.view === "everest") { $("#main").innerHTML = renderEverest(); return; }
   if (S.view === "backlog") { const kb0 = $("#kb"); if (kb0) S.blsx = kb0.scrollLeft; $("#main").innerHTML = renderBacklog() + blSetupPanel() + exportPanel(); blDraggable(); const kb1 = $("#kb"); if (kb1 && S.blsx) kb1.scrollLeft = S.blsx; return; }
   if (!d || !d.rows.length) html = (S.view === "review" || S.view === "table") ? `<div class="empty"><h2>No blocks on this day</h2><p class="hint">Plan the day first, then come back to review it.</p><div class="btnrow"><a class="btn primary" href="#plan">Go to Plan</a></div></div>` : emptyHTML();
   else if (S.view === "review") html = renderReview(d);
@@ -1893,6 +1931,7 @@ document.addEventListener("click", e => {
     const tr = e.target.closest("tr[data-id]"); if (tr) { S.open = tr.dataset.id; location.hash = "#actual"; } return; }
   const act = el.dataset.act, id = el.dataset.id, v = el.dataset.v;
   if (act.startsWith("bl")) { blAction(el, act); return; }
+  if (act.startsWith("ev")) { evAction(el, act); return; }
   const d = curDay(); const r = id ? findRow(id) : null;
   const task = r && el.dataset.t ? (r.tasks.find(t => t.id === el.dataset.t) || r.extras.find(t => t.id === el.dataset.t)) : null;
   if (act !== "askdel" && act !== "del") S.confirmDel = null;
@@ -2049,7 +2088,9 @@ document.addEventListener("click", e => {
 
 function onField(e){
   const el = e.target; const f = el.dataset && el.dataset.f; if (!f || !el.closest("#main")) return;
+  if (f.startsWith("ev")) { evField(el, f); return; }
   const d = curDay(); if (!d) return;
+  if (f === "prioEv") { d.prioEv = d.prioEv || ["", "", ""]; d.prioEv[Number(el.dataset.k)] = el.value; touch(S.date); render(); return; }
   if (f === "reflection") { d.reflection = el.value; touch(S.date); return; }
   if (f === "prioN") { d.prioN = d.prioN || ["","",""]; d.prioN[Number(el.dataset.k)] = el.value; touch(S.date); return; }
   if (f === "prioNotes") { d.prioNotes = el.value; touch(S.date); return; }
@@ -2111,7 +2152,7 @@ function buildMD(d){
   const ctx = computeActual(d); const ps = planRows(d);
   const nm = r => r.kind === "pomodoro" ? "Pomodoro" + (r.category ? " (" + r.category + ")" : "") : r.type;
   let s = `Day structure · ${shortDate(d.date)} (${d.date})\n`;
-  if (d.priorities.some(Boolean)) s += `\nPRIORITIES\n${d.priorities.map((p,i) => p ? `Main task ${i+1}: ${p}${(d.prioDone || [])[i] ? " (done)" : ""}${(d.prioMoved || [])[i] ? " (moved to " + d.prioMoved[i] + ")" : ""}\n` : "").join("")}`;
+  if (d.priorities.some(Boolean)) s += `\nPRIORITIES\n${d.priorities.map((p,i) => p ? `MIT ${i+1}: ${p}${(d.prioDone || [])[i] ? " (done)" : ""}${(d.prioMoved || [])[i] ? " (moved to " + d.prioMoved[i] + ")" : ""}\n` : "").join("")}`;
   if (d.prioNotes) s += `Notes: ${d.prioNotes}\n`;
   if ((d.small||[]).length) s += `\nSMALLER TASKS\n${d.small.map(t => `${t.done ? "✓" : "·"} ${t.name}\n`).join("")}`;
   s += `\nTHE PLAN\n`;
@@ -2883,6 +2924,95 @@ document.addEventListener("pointerup", e => bdEnd(e));
 document.addEventListener("pointercancel", e => bdEnd(e, true));
 function blDraggable(){}
 
+/* ---------- Mount Everest goals (stored in settings, synced with them) ---------- */
+const EV_LEVELS = [["year", "1-year goal"], ["quarter", "This quarter"], ["week", "This week"]];
+function EV(){ const e = SET().everest; return e && Array.isArray(e.goals) ? e : {vision: "", goals: []}; }
+function evEdit(fn){ S.settings = JSON.parse(JSON.stringify(SET())); const e = S.settings.everest && Array.isArray(S.settings.everest.goals) ? S.settings.everest : (S.settings.everest = {vision: "", goals: []}); fn(e); touchSettings(); }
+const evGoal = (e, id) => e.goals.find(g => g.id === id);
+function evNext(g){ const open = (g.steps || []).filter(x => !x.done); const ord = {week: 0, quarter: 1, year: 2}; return open.sort((a, b) => (ord[a.lvl] ?? 1) - (ord[b.lvl] ?? 1) || String(a.by || "9").localeCompare(String(b.by || "9")))[0] || null; }
+/* MITs done that were linked to a goal: last 7 days up to the shown day, and all time */
+function evPedals(gid){ const from = addDays(S.date, -6); let week = 0, all = 0, last = "";
+  Object.keys(S.days).forEach(k => { const d = S.days[k]; (d.prioEv || []).forEach((g, i) => { if (g === gid && (d.priorities || [])[i] && (d.prioDone || [])[i]) { all++; if (k >= from && k <= S.date) week++; if (k > last) last = k; } }); });
+  return {week, all, last}; }
+function evSelHTML(d, i){ const e = EV(); if (!e.goals.length) return ""; const cur = (d.prioEv || [])[i] || "";
+  return `<label class="evsel">⛰ <select data-f="prioEv" data-k="${i}" aria-label="Which Everest goal MIT ${i + 1} moves"><option value="">Moves which Everest goal?</option>${e.goals.map(g => `<option value="${g.id}" ${g.id === cur ? "selected" : ""}>${esc(g.title || "Untitled goal")}</option>`).join("")}</select></label>`; }
+function evTodayLine(){ const e = EV(); const gs = e.goals.filter(g => (g.title || "").trim()); if (!gs.length) return `<p class="evline">⛰ <a href="#everest">Set your Mount Everest</a> so each MIT can point at it.</p>`;
+  const nx = gs.map(g => [g, evNext(g)]).filter(([, n]) => n).slice(0, 2);
+  return `<p class="evline">⛰ ${nx.length ? "Next steps: " + nx.map(([g, n]) => `<b>${esc(n.title)}</b> <span class="hint">(${esc(g.title)})</span>`).join(" · ") : "Everest: " + gs.map(g => `<b>${esc(g.title)}</b>`).join(" · ")} <a href="#everest" class="hint">Edit</a></p>`; }
+function renderEverest(){
+  const e = EV();
+  const goal = g => { const st = g.steps || [], dn = st.filter(x => x.done).length, pct = st.length ? Math.round(dn / st.length * 100) : 0, pd = evPedals(g.id), nx = evNext(g);
+    const step = x => `<li class="${x.done ? "done" : ""}"><input type="checkbox" data-f="evStepDone" data-g="${g.id}" data-s="${x.id}" ${x.done ? "checked" : ""} aria-label="Done: ${esc(x.title)}">
+        <select data-f="evStepLvl" data-g="${g.id}" data-s="${x.id}" aria-label="Level">${EV_LEVELS.map(([k, l]) => `<option value="${k}" ${x.lvl === k ? "selected" : ""}>${l}</option>`).join("")}</select>
+        <input type="text" autocomplete="off" id="evst-${x.id}" data-f="evStep" data-g="${g.id}" data-s="${x.id}" value="${esc(x.title)}" aria-label="Step">
+        <input type="date" data-f="evStepBy" data-g="${g.id}" data-s="${x.id}" value="${esc(x.by || "")}" aria-label="By when">
+        <button type="button" class="x" data-act="evRmStep" data-g="${g.id}" data-s="${x.id}" aria-label="Remove step ${esc(x.title)}">×</button></li>`;
+    return `<section class="evcard">
+      <div class="gt"><input type="text" autocomplete="off" id="evt-${g.id}" data-f="evTitle" data-g="${g.id}" value="${esc(g.title)}" placeholder="Everest goal, e.g. My signature retreat format" aria-label="Everest goal">
+        ${S.evDel === g.id ? `<button type="button" class="btn danger" data-act="evRmGoal" data-g="${g.id}">Tap again to delete</button>` : `<button type="button" class="x" data-act="evAskRm" data-g="${g.id}" aria-label="Delete goal ${esc(g.title)}">×</button>`}</div>
+      <div class="two"><label class="field"><span>Why it matters</span><textarea id="evw-${g.id}" data-f="evWhy" data-g="${g.id}" rows="2" placeholder="What it gives you and the people around you">${esc(g.why || "")}</textarea></label>
+        <label class="field"><span>Summit by</span><input type="text" autocomplete="off" id="evb-${g.id}" data-f="evBy" data-g="${g.id}" value="${esc(g.by || "")}" placeholder="e.g. 2031"></label></div>
+      <div class="evbar" role="img" aria-label="${dn} of ${st.length} steps done"><i style="width:${pct}%"></i></div>
+      <div class="evmeta"><span>Steps <b>${dn}/${st.length}</b></span><span>MITs toward it, last 7 days <b>${pd.week}</b></span><span>All time <b>${pd.all}</b></span>${pd.last ? `<span>Last pedal ${esc(dShort(pd.last))}</span>` : ""}${nx ? `<span>Next: <b style="font-family:inherit">${esc(nx.title)}</b></span>` : ""}</div>
+      <div class="field"><span>Increments, from this year down to this week</span><ul class="evsteps">${st.map(step).join("")}</ul></div>
+      <div class="addrow"><input type="text" autocomplete="off" id="evadd-${g.id}" placeholder="Add an increment, e.g. Draft the 2-day agenda" aria-label="New increment for ${esc(g.title)}"><button type="button" class="btn" data-act="evAddStep" data-g="${g.id}">Add</button></div>
+    </section>`; };
+  return `<div class="ev">
+    <p class="lead">Your Everest is the signal. MITs are today's pedal strokes toward it.</p>
+    <div class="chain"><b>⛰ Everest</b>→<b>1-year goal</b>→<b>This quarter</b>→<b>This week</b>→<b>Today's MITs</b></div>
+    <section class="evcard"><h2>The deathbed view</h2>
+      <p class="hint">You are 110, in your last days. Who is in the room, and what do you want them to think of you? What must you have experienced, done and been to leave with a smile?</p>
+      <textarea id="evVision" data-f="evVision" rows="4" placeholder="Write it in a few sentences, then boil it down to 2 or 3 life priorities.">${esc(e.vision || "")}</textarea></section>
+    ${e.goals.map(goal).join("")}
+    <div class="btnrow"><button type="button" class="btn primary" data-act="evAddGoal">+ Everest goal</button></div>
+    <p class="hint">Each morning, link your MITs to a goal on Plan. Weekly: tick off steps and pick next week's. Quarterly: reread the deathbed view.</p>
+  </div>`;
+}
+function evField(el, f){
+  const gid = el.dataset.g, sid = el.dataset.s;
+  evEdit(e => { if (f === "evVision") { e.vision = el.value; return; }
+    const g = evGoal(e, gid); if (!g) return; const x = sid ? (g.steps || []).find(y => y.id === sid) : null;
+    if (f === "evTitle") g.title = el.value; else if (f === "evWhy") g.why = el.value; else if (f === "evBy") g.by = el.value;
+    else if (x && f === "evStep") x.title = el.value; else if (x && f === "evStepBy") x.by = el.value; else if (x && f === "evStepLvl") x.lvl = el.value;
+    else if (x && f === "evStepDone") { x.done = el.checked; x.doneAt = el.checked ? Date.now() : null; } });
+  if (f === "evStepDone" || f === "evStepLvl" || f === "evStepBy") render();
+}
+function evAction(el, act){
+  const gid = el.dataset.g, sid = el.dataset.s;
+  if (act === "evAskRm") { S.evDel = gid; render(); return; }
+  S.evDel = null;
+  if (act === "evAddGoal") { const id = uid(); evEdit(e => e.goals.push({id, title: "", why: "", by: "", steps: []})); render(); setTimeout(() => { const n = $("#evt-" + id); if (n) n.focus(); }, 30); return; }
+  if (act === "evRmGoal") { evEdit(e => { e.goals = e.goals.filter(g => g.id !== gid); }); render(); return; }
+  if (act === "evRmStep") { evEdit(e => { const g = evGoal(e, gid); if (g) g.steps = (g.steps || []).filter(x => x.id !== sid); }); render(); return; }
+  if (act === "evAddStep") { const inp = $("#evadd-" + gid), t = inp ? inp.value.trim() : ""; if (!t) { if (inp) inp.focus(); return; }
+    evEdit(e => { const g = evGoal(e, gid); if (g) (g.steps = g.steps || []).push({id: uid(), title: t, lvl: "week", by: "", done: false}); }); render(); setTimeout(() => { const n = $("#evadd-" + gid); if (n) n.focus(); }, 30); return; }
+}
+document.addEventListener("keydown", e => { const t = e.target; if (e.key === "Enter" && t.id && t.id.startsWith("evadd-")) { e.preventDefault(); const b = t.parentElement.querySelector('[data-act="evAddStep"]'); if (b) b.click(); } });
+
+/* ---------- focus span: how long you stay focused, from the blocks you rated ---------- */
+const SPAN_BUCKETS = [[0, 25, "Up to 25 min"], [26, 45, "26 to 45 min"], [46, 60, "46 to 60 min"], [61, 90, "61 to 90 min"], [91, 9999, "Over 90 min"]];
+function focusSpanHTML(upTo){
+  const from = addDays(upTo, -29), rows = [], perDay = {};
+  Object.keys(S.days).filter(k => k >= from && k <= upTo).forEach(k => (S.days[k].rows || []).forEach(r => {
+    const kd = ek(r); if (r.status === "skipped" || !r.focus || !(kd === "pomodoro" || kd === "block")) return;
+    const dur = r.actualDur ?? r.planDur ?? 0; if (dur <= 0) return; rows.push({dur, focus: r.focus, energy: r.energy || 0}); perDay[k] = (perDay[k] || 0) + dur; }));
+  if (rows.length < 3) return `<h2 class="sec">Your focus span</h2><p class="hint">Rate concentration on your Pomodoros and focus blocks for a few days. This then shows which session length keeps your focus highest, and your longest strong session.</p>`;
+  const b = SPAN_BUCKETS.map(([lo, hi, l]) => { const xs = rows.filter(x => x.dur >= lo && x.dur <= hi); const av = k => xs.length ? xs.reduce((a, x) => a + x[k], 0) / xs.length : 0; return {l, n: xs.length, f: av("focus"), e: av("energy")}; }).filter(x => x.n);
+  const best = b.filter(x => x.n >= 2).sort((a, c) => c.f - a.f)[0];
+  const strong = rows.filter(x => x.focus >= 4).reduce((m, x) => Math.max(m, x.dur), 0);
+  const days = Object.values(perDay), avgDay = days.reduce((a, x) => a + x, 0) / days.length, maxDay = Math.max(...days);
+  return `<h2 class="sec">Your focus span <span class="hint">last 30 days · ${rows.length} rated sessions</span></h2>
+    <div class="stats" style="margin-top:0">
+      <div class="stat"><span>Ideal length so far</span><b>${best ? esc(best.l.replace(" to ", "–")) : "–"}</b><small>${best ? "highest concentration, " + best.f.toFixed(1) + " of 5" : "needs 2+ sessions per length"}</small></div>
+      <div class="stat"><span>Longest strong session</span><b>${strong ? fmtD(strong) : "–"}</b><small>concentration 4 or 5</small></div>
+      <div class="stat"><span>Focus time per day</span><b>${fmtD(avgDay)}</b><small>average · most ${fmtD(maxDay)}</small></div>
+    </div>
+    <table class="span" style="margin-top:10px"><thead><tr><th>Session length</th><th>Sessions</th><th>Concentration</th><th>Energy</th></tr></thead><tbody>
+      ${b.map(x => `<tr class="${best && x.l === best.l ? "best" : ""}"><td>${x.l}</td><td class="num">${x.n}</td><td class="num">${x.f.toFixed(1)}</td><td class="num">${x.e ? x.e.toFixed(1) : "–"}</td></tr>`).join("")}
+    </tbody></table>
+    <p class="hint" style="margin-top:6px">Try 25, 50 and 90 minute sessions at your peak time for a couple of weeks; extend a Pomodoro with its overtime, then log the real duration.</p>`;
+}
+
 /* ---------- navigation ---------- */
 function setDate(iso){ if (!iso) return; S.date = iso; S.open = null; render(); window.scrollTo(0,0); }
 $("#prevDay").onclick = () => setDate(addDays(S.date, -1));
@@ -2912,7 +3042,7 @@ window.addEventListener("online", () => { pillIdle(); syncNow(false); });
 window.addEventListener("offline", pillIdle);
 $("#reloadBtn").onclick = () => { try { saveLocal(); } catch(e){} location.reload(); };
 $("#datePick").addEventListener("change", e => setDate(e.target.value));
-function route(){ const h = location.hash.slice(1); S.view = ["backlog","plan","actual","review","table"].includes(h) ? h : (S.view || "plan"); S.confirmDel = null; render(); }
+function route(){ const h = location.hash.slice(1); S.view = ["backlog","everest","plan","actual","review","table"].includes(h) ? h : (S.view || "plan"); S.confirmDel = null; render(); }
 window.addEventListener("hashchange", route);
 
 /* ---------- boot ---------- */
